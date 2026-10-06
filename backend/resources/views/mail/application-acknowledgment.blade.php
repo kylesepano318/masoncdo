@@ -1,0 +1,1 @@
+<!doctype html><html lang="en"><body><h1>Application received</h1><p>Your membership application has been received.</p><p>Reference: {{ $reference }}</p><p>Please keep this reference number for your records.</p></body></html>

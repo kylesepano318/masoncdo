@@ -1,0 +1,280 @@
+[
+  [
+    "hero",
+    "S:.I:.G:.L:.O:.",
+    "FEDERATION",
+    "<p>Universal Freemasonry Alliance of Masonic Alliances</p>",
+    "/background.jpg",
+    {
+      "background": "#101726",
+      "text_color": "#FFFFFF",
+      "style": "background",
+      "height": 680,
+      "overlay_opacity": 0.5,
+      "alt": "Golden Friendship Masonic Lodge No. 40 officers",
+      "background_image": "/background.jpg",
+      "background_position": "center top",
+      "background_fit": "cover",
+      "alignment": "center"
+    }
+  ],
+  [
+    "lodge_feature",
+    "Golden Friendship",
+    "MASONIC LODGE NO. 40",
+    "<p>Our lodge in Cagayan de Oro City.<br>Liberty · Equality · Fraternity.</p>",
+    "/images/golden-friendship-lodge-no-40.png",
+    {
+      "background": "#FFFFFF",
+      "text_color": "#111111",
+      "use_lodge_emblem": true,
+      "caption": "CAGAYAN DE ORO CITY, PHILIPPINES",
+      "button_text": "Meet our lodge",
+      "button_url": "/members"
+    }
+  ],
+  [
+    "gallery",
+    null,
+    null,
+    null,
+    null,
+    {
+      "background": "#FFFFFF",
+      "text_color": "#111111",
+      "layout": "documents",
+      "items": [
+        {
+          "image": "/images/siglo/federation-carta-patente.jpg",
+          "title": "Carta Patente — Sovereign Independent Grand Lodge of the Orient · Philippines (Federation)"
+        },
+        {
+          "image": "/images/siglo/federation-emblem.png",
+          "title": "Sovereign Independent Grand Lodge of the Orient — Federation"
+        }
+      ]
+    }
+  ],
+  [
+    "historical_document",
+    "History of SONS of Charleston Rite 1801",
+    "HOLDERS of",
+    "<p>The most practiced rite in the world from the Entered Apprentice degree is the Ancient and Accepted Scottish Rite.</p><p>Reference Link: <a href=\"https://en.wikipedia.org/wiki/List_of_Masonic_rites\">List of Masonic rites</a></p>",
+    "/images/siglo/scottish-rite-chart.png",
+    {
+      "background": "#FFFFFF",
+      "text_color": "#111111",
+      "alt": "Table about the Ancient and Accepted Scottish Rite",
+      "caption": "Ancient and Accepted Scottish Rites · A:.A:.S:.R:.",
+      "eyebrow": "Ancient and Accepted Scottish Rites · A:.A:.S:.R:."
+    }
+  ],
+  [
+    "image_text",
+    "Supreme Conseil Du 33 Degre En Occitanie - France",
+    null,
+    "<p>The Venerable Guardian of the Charleston 1801 and Custodian of the Ancient &amp; Accepted Scottish Rite.</p><p>Universal brotherhood is not an abstract slogan: it is lived concretely in diversity, but from a solid foundation. Without this foundation, it is diluted and fragmented. As Newton said, &quot;Men build too many walls and not enough bridges.&quot; This statement resonates deeply with us. For our mission is not to erect ideological barriers between different faiths, but to build bridges: bridges between traditions, bridges between generations, bridges between cultures. But these bridges only stand if their pillars are solid. And our foundation is our spiritual roots.</p><p><a href=\"https://scdoccitanie.org/imu-partenaires-dans-le-monde/\" target=\"_blank\" rel=\"noopener noreferrer\">https://scdoccitanie.org/imu-partenaires-dans-le-monde/</a></p>",
+    "/images/siglo/occitanie-emblem.png",
+    {
+      "background": "#FFFFFF",
+      "text_color": "#111111",
+      "layout": "half",
+      "alt": "Supreme Conseil Du 33 Degre En Occitanie — France",
+      "video_url": "https://www.youtube.com/watch?v=uACxhycnzC0&t=7s",
+      "video_title": "What is a Scottish Rite Mason?"
+    }
+  ],
+  [
+    "rich_text",
+    "Lodge Mother Kilwinning No. 0",
+    null,
+    "<p>A Masonic Lodge in Kilwinning, Scotland, under the auspices of the Grand Lodge of Scotland. It is number 0 (referred to as &quot;nothing&quot; and not zero) on the Roll, and is reputed by some to be the oldest Lodge not only in Scotland, but the world. There is no existing evidence to support this claim however. It is styled The Mother Lodge of Scotland attributing its origins to the 12th Century, and is often called Mother Kilwinning.</p><p>Reference Link: <a href=\"https://en.wikipedia.org/wiki/Lodge_Mother_Kilwinning#\" target=\"_blank\" rel=\"noopener noreferrer\">https://en.wikipedia.org/wiki/Lodge_Mother_Kilwinning#</a></p><p>“The Lodge of Edinburgh (Mary’s Chapel) No 1 &amp; Edinburgh&#x27;s Lodge of Journeyman Masons No. 8”</p><p>Located at number 19 Hill Street, Mary’s Chapel isn’t a place of worship. It’s a Masonic lodge. And, with its records dating back to 1599, it’s the oldest proven Masonic lodge still in existence anywhere in the world.</p><p>From the Middle Ages, associations of stonemasons existed in both England and Scotland. It was in Scotland, though, that the first evidence appears of associations – or lodges – being regularly used. By the late 1500s, there were at least 13 established lodges across Scotland, from Edinburgh to Perth. But it wasn’t until the turn of the 16th Century that those medieval guilds gained an institutional structure – the point which many consider to be the birth of modern Freemasonry.</p><p>Take, for example, the earliest meeting records, usually considered to be the best evidence of a lodge having any real organization. The oldest minutes in the world, which date to January 1599, is from Lodge Aitchison’s Haven in East Lothian, Scotland, which closed in 1852. Just six months later, in July 1599, the lodge of Mary’s Chapel in Edinburgh started to keep minutes, too. As far as we can tell, there are no administrative records from England dating from this time.</p><p>“This is, really, when things begin,” said Robert Cooper, curator of the Grand Lodge of Scotland and author of the book Cracking the Freemason’s Code. “[Lodges] were a fixed feature of the country. And what is more, we now know it was a national network. So Edinburgh began it, if you like.”</p><p>Reference Link: <a href=\"https://www.bbc.com/travel/article/20161209-secret-history-of-the-freemasons-in-scotland\" target=\"_blank\" rel=\"noopener noreferrer\">https://www.bbc.com/travel/article/20161209-secret-history-of-the-freemasons-in-scotland</a></p>",
+    null,
+    {
+      "background": "#FFFFFF",
+      "text_color": "#111111",
+      "layout": "half"
+    }
+  ],
+  [
+    "gallery",
+    "Pearl of the Orient - Supreme Council of the 33rd & Last Degree - Philippines",
+    null,
+    "<p>A Sovereign and Regular Jurisdiction in the Philippine Isles, Steadfast and Immovable</p><p>“Be it known unto all Brethren of the Craft, that within these Sacred Isles endureth, unshaken, the Ancient and Immutable Landmarks of Freemasonry — those Eternal Pillars of Regularity and Just Practice. Here abideth in purity the Rite of the Ancient and Accepted Scottish, inviolate beneath the solemn Carta Patent, and sanctified by the august authority of the Supreme Council of the Thirty-Third and Last Degree in Occitania, France,</p><p>rightful heir to the venerable Rite of Charleston, 1801.”</p><p>Sons of Charleston Rite 1801</p><p>The Holders of Ancient and Accepted Scottish Rites</p><p>Pearl of the Orient - Supreme Council of the 33rd &amp; Last Degree - Philippines</p>",
+    null,
+    {
+      "background": "#FFFFFF",
+      "text_color": "#111111",
+      "layout": "half",
+      "items": [
+        {
+          "image": "/images/siglo/pearl-of-the-orient.jpg",
+          "title": "Pearl of the Orient · Charleston Rite 1801"
+        },
+        {
+          "image": "/images/siglo/pearl-carta-patente.jpg",
+          "title": "Historical Carta Patente · Pearl of the Orient"
+        },
+        {
+          "image": "/images/siglo/charleston-carta-patente.jpg",
+          "title": "Carta Patente · Heir of Charleston 1801"
+        }
+      ]
+    }
+  ],
+  [
+    "image_text",
+    "Mother Supreme Council of the World Charleston 1801 A:.ncient & A:.ccepted S:.cottish R:.ites",
+    null,
+    "<p>Reference Link: <a href=\"https://scottishrite.org/about/history/\">Scottish Rite history</a></p><h3>The Scottish Rite in France between 1804 and 1894</h3><p>In 1804, Alexandre Francois Auguste de Grasse, Count de Grasse-Tilly recently arrived in Paris brought news of the birth of the Ancient and Accepted Scottish Rite in the United States in 1801, the Rite being based on the Scottish Degrees originating from French Antilles.</p><p>He received a warm welcome from brethren and founded on 22 September 1804 the first continental Supreme Council of the Ancient and Accepted Scottish Rite. The same enhanced the transformation of Lodges recently aggregated around « Saint-Alexandre d’Écosse » into a new symbolic Obedience in charge of the first three symbolic Degrees: the Grande Loge Générale Ecossaise. The « Grande Loge Générale Ecossaise » elected Prince Louis Bonaparte as its first Grand Master. However, Napoléon I, Emperor of the French imposed its merger with the Grand Orient de France on 5 December 1804 under the authority of Jean-Jacques-Régis de Cambacérès.</p><p>The vocabulary applicable to Freemasonry in France evolved at that time: Scottish Lodge which characterized High Degrees became of use to define all Lodges not pertaining to the French Rite. Elements from the Grande Loge des Anciens founded in England in 1751 rooted the first Three Degrees of the Rite in 1804. Its completion was reached in 1821 with the publishing of the Guide des Macons Ecossais. It was enacted by the Suprême Conseil de France [fr] who then administered the 33 Degrees of the Ancient and Accepted Scottish Rite.</p><p>In 1838, the Élie, duc Decazes is appointed Sovereign Grand Commander of the Supreme Conseil de France: he will occupy the charge until 1860.</p><p>In 1862, Napoléon III personally appointed Bernard Pierre Magnan Marshall of France to be the successor of Prince Lucien Murat as Grand Master of the Grand Orient de France. Bernard Pierre Magnan intended to impose the reunification of all Rites then practised in France within the Grand Orient de France. He failed to do so due to the valiant opposition of Jean-Pons-Guillaume Viennet, Sovereign Grand Commander of the Suprême Conseil de France from 1860 to 1868.</p>",
+    "/images/siglo/mother-supreme-council.png",
+    {
+      "background": "#FFFFFF",
+      "text_color": "#111111",
+      "layout": "half",
+      "alt": "Mother Supreme Council of the World · Charleston 1801"
+    }
+  ],
+  [
+    "historical_document",
+    null,
+    null,
+    null,
+    "/images/siglo/charleston-founders.jpg",
+    {
+      "background": "#FFFFFF",
+      "text_color": "#111111",
+      "alt": "Historical illustration of the Charleston Supreme Council",
+      "caption": "Charleston Rite 1801 · Historical archive"
+    }
+  ],
+  [
+    "image_text",
+    "Grande Loge Nationale des Rites Maconniques",
+    null,
+    "<p>Grande Loge Nationale des Rites Maconniques<br>Universal brotherhood is not an abstract slogan: it is lived concretely in diversity, but from a solid foundation. Without this foundation, it is diluted and fragmented. As Newton said, &quot;Men build too many walls and not enough bridges.&quot; This statement resonates deeply with us. For our mission is not to erect ideological barriers between different faiths, but to build bridges: bridges between traditions, bridges between generations, bridges between cultures. But these bridges only stand if their pillars are solid. And our foundation is our spiritual roots.</p><p><a href=\"https://www.fm-fr.org/glnrm/\" target=\"_blank\" rel=\"noopener noreferrer\">https://www.fm-fr.org/glnrm/</a></p><p><a href=\"https://www.fm-fr.org/reaa/\" target=\"_blank\" rel=\"noopener noreferrer\">https://www.fm-fr.org/reaa/</a></p><p><a href=\"https://www.fm-fr.org/le-manuscrit-regius-halliwell-1390/\" target=\"_blank\" rel=\"noopener noreferrer\">https://www.fm-fr.org/le-manuscrit-regius-halliwell-1390/</a></p>",
+    "/images/siglo/glnrm-emblem.png",
+    {
+      "background": "#FFFFFF",
+      "text_color": "#111111",
+      "layout": "half",
+      "alt": "Grande Loge Nationale des Rites Maconniques emblem"
+    }
+  ],
+  [
+    "image_text",
+    "A Member of the Institution Maçonnique Universelle",
+    "(Universal Masonic Institution)",
+    "<p>UMI - The Largest Freemasonic Alliance in the World</p><p>Its total adherence to the basic goals and principles of the traditional and regular Orders whose vocation is to unite within itself, without any exclusion, all worthy and faithful women and men bearing respect and love for their fellow men, in order to develop their taste for rectitude and personal responsibility, their worship of truth, justice and freedom, their will to think and act with tolerance and wisdom for the constant benefit of the union, happiness, progress, and well-being of the human family and each of its members indifferent to the rites practiced.</p><p><a href=\"https://institution-maconnique-universelle.webnode.fr/\">Institution Maçonnique Universelle</a></p>",
+    "/images/siglo/umi-emblem.png",
+    {
+      "background": "#FFFFFF",
+      "text_color": "#111111",
+      "layout": "half",
+      "alt": "Institution Maçonnique Universelle seal"
+    }
+  ],
+  [
+    "historical_document",
+    null,
+    null,
+    null,
+    "/images/siglo/siglo-umi.jpg",
+    {
+      "background": "#FFFFFF",
+      "text_color": "#111111",
+      "alt": "SIGLO Federation membership document · Institution Maçonnique Universelle",
+      "caption": "SIGLO Federation · Institution Maçonnique Universelle"
+    }
+  ],
+  [
+    "image_text",
+    "A Member of The United General Grand Masonic Congress of Ancient Free and Accepted Masons of the United States of America",
+    null,
+    "<p>One of the Largest Freemasonic Alliance in United States of America. The United General Grand Masonic Congress of Ancient Free and Accepted Masons of the United States of America (commonly abbreviated as the General Grand Masonic Congress, or GGMC) is a historically Black overarching Masonic governing body formed to oversee symbolic Freemasonry across North America.</p>",
+    "/images/siglo/general-grand-congress.jpg",
+    {
+      "background": "#FFFFFF",
+      "text_color": "#111111",
+      "layout": "half",
+      "alt": "SIGLO Federation · United General Grand Masonic Congress document"
+    }
+  ],
+  [
+    "image_text",
+    "A Member of the European Masonic Confederation of Great RI-Builders Osiris-Hiram Habif",
+    null,
+    "<p>One of the Largest Freemasonic Alliance in Europe. The European Masonic Confederation of Great RI Builders (Osíris Hiram Habif) refers to a specific, transnational network of lodges that operate within the broader European Masonic framework. It centers heavily on the esoteric teachings, allegories, and foundational myths of Freemasonry.</p>",
+    "/images/siglo/european-confederation.jpg",
+    {
+      "background": "#FFFFFF",
+      "text_color": "#111111",
+      "layout": "half",
+      "alt": "SIGLO Federation · European Masonic Confederation document"
+    }
+  ],
+  [
+    "historical_document",
+    "The brethren of Golden Friendship",
+    null,
+    "<p>Golden Friendship Masonic Lodge No. 40 · Cagayan de Oro City</p>",
+    "/images/lodge-brethren.jpg",
+    {
+      "background": "#FFFFFF",
+      "text_color": "#111111",
+      "alt": "Brethren gathered in the Golden Friendship lodge"
+    }
+  ],
+  [
+    "officers",
+    "Lodge officers",
+    null,
+    null,
+    null,
+    {
+      "background": "#FFFFFF",
+      "text_color": "#111111",
+      "button_text": "View all members",
+      "button_url": "/members"
+    }
+  ],
+  [
+    "celebrations",
+    "In the life of our lodge",
+    null,
+    null,
+    null,
+    {
+      "background": "#FFFFFF",
+      "text_color": "#111111",
+      "button_text": "All celebrations",
+      "button_url": "/celebrations"
+    }
+  ],
+  [
+    "video",
+    null,
+    null,
+    null,
+    null,
+    {
+      "background": "#FFFFFF",
+      "text_color": "#111111",
+      "video_url": "https://www.youtube.com/watch?v=jsAHUOoD4Ns",
+      "video_title": "Crafting Our Story"
+    }
+  ],
+  [
+    "cta",
+    "Do you want to become a Better Version of Yourself?",
+    null,
+    "<p>Do You want to become a Light to Lit Up Other People and Save them from Darkness?</p><p>If Yes then Fill Up the Form Below and Let Us Start Your Path into Enlightenment in Freemasonry Now.</p>",
+    null,
+    {
+      "background": "#FFFFFF",
+      "text_color": "#111111",
+      "button_text": "Membership application",
+      "button_url": "/application"
+    }
+  ]
+]

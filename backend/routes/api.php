@@ -1,0 +1,57 @@
+<?php
+
+use App\Http\Controllers\ApiApplicationController;
+use App\Http\Controllers\ApiAuthController;
+use App\Http\Controllers\ApiPublicController;
+use App\Http\Controllers\CelebrationController;
+use App\Http\Controllers\CmsController;
+use App\Http\Controllers\MediaController;
+use App\Http\Controllers\MemberController;
+use App\Http\Controllers\SettingsController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/health', fn () => response()->json(['status' => 'ok']));
+Route::get('/public/site', [ApiPublicController::class, 'site']);
+Route::get('/public/members', [ApiPublicController::class, 'members']);
+Route::get('/public/pages/{slug}', [ApiPublicController::class, 'page']);
+Route::post('/applications', [ApiPublicController::class, 'submit'])->middleware('throttle:5,1');
+Route::post('/admin/login', [ApiAuthController::class, 'login'])->middleware('throttle:5,1');
+Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::get('/me', [ApiAuthController::class, 'me']);
+    Route::post('/logout', [ApiAuthController::class, 'logout']);
+    Route::put('/password', [ApiAuthController::class, 'password']);
+    Route::get('/dashboard', [ApiApplicationController::class, 'dashboard']);
+    Route::get('/applications/counts', [ApiApplicationController::class, 'counts']);
+    Route::get('/applications', [ApiApplicationController::class, 'index']);
+    Route::get('/applications/{application}', [ApiApplicationController::class, 'show']);
+    Route::patch('/applications/{application}/status', [ApiApplicationController::class, 'status']);
+    Route::patch('/applications/{application}/notes', [ApiApplicationController::class, 'notes']);
+    Route::post('/applications/{application}/mark-read', [ApiApplicationController::class, 'markRead']);
+    Route::post('/applications/{application}/resend-notification', [ApiApplicationController::class, 'resend'])->middleware('throttle:5,1');
+    Route::post('/applications/{application}/convert-to-member', [ApiApplicationController::class, 'convert']);
+    Route::post('/settings/notifications/test-email', [ApiApplicationController::class, 'testEmail'])->middleware('throttle:5,1');
+    Route::post('/members/reorder', [MemberController::class, 'reorder']);
+    Route::get('/preview/{slug}', [ApiPublicController::class, 'preview']);
+    Route::get('/pages/{page}', [CmsController::class, 'edit']);
+    Route::put('/pages/{page}', [CmsController::class, 'update']);
+    Route::post('/pages/{page}/sections', [CmsController::class, 'store']);
+    Route::post('/pages/{page}/reorder', [CmsController::class, 'reorder']);
+    Route::put('/sections/{section}', [CmsController::class, 'section']);
+    Route::post('/sections/{section}/duplicate', [CmsController::class, 'duplicate']);
+    Route::delete('/sections/{section}', [CmsController::class, 'destroy']);
+    Route::get('/media', [MediaController::class, 'index']);
+    Route::post('/media', [MediaController::class, 'store']);
+    Route::put('/media/{media}', [MediaController::class, 'update']);
+    Route::delete('/media/{media}', [MediaController::class, 'destroy']);
+    Route::get('/settings/{group}', [SettingsController::class, 'edit']);
+    Route::put('/settings/{group}', [SettingsController::class, 'update']);
+    Route::get('/affiliations', [SettingsController::class, 'affiliations']);
+    Route::post('/affiliations', [SettingsController::class, 'affiliation']);
+    Route::put('/affiliations/{affiliation}', [SettingsController::class, 'affiliation']);
+    Route::delete('/affiliations/{affiliation}', [SettingsController::class, 'removeAffiliation']);
+    Route::get('/celebrations', [CelebrationController::class, 'index']);
+    Route::post('/celebrations', [CelebrationController::class, 'save']);
+    Route::put('/celebrations/{celebration}', [CelebrationController::class, 'save']);
+    Route::delete('/celebrations/{celebration}',[CelebrationController::class, 'destroy']);
+    Route::resource('members',MemberController::class)->except('show');
+});

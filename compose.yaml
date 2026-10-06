@@ -1,0 +1,13 @@
+services:
+  database:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: mason
+      POSTGRES_USER: mason
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - lodge-postgres:/var/lib/postgresql
+volumes:
+  lodge-postgres:
