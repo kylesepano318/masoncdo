@@ -2,7 +2,6 @@ import { apiActions, useApiForm, Link } from "../../lib/ui";
 import AdminLayout from "../../layouts/AdminLayout";
 import { Field, Errors } from "../../components/ui/Form";
 import type { ApplicationRecord } from "../../types";
-import { applicationsApi } from "../../lib/api";
 export default function ApplicationDetail({
   application: a,
 }: {
@@ -45,12 +44,7 @@ export default function ApplicationDetail({
           className="admin-panel"
           onSubmit={(e) => {
             e.preventDefault();
-            f.transform((data) => ({ status: data.status }));
-            f.patch(`/admin/applications/${a.id}/status`, {
-              onSuccess: async () => {
-                await applicationsApi.notes(a.id, f.data.admin_notes);
-              },
-            });
+            f.patch(`/admin/applications/${a.id}/status`);
           }}
         >
           <h2>Review application</h2>

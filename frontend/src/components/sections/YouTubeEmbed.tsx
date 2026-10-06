@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+
 export default function YouTubeEmbed({
   url,
   title = "YouTube video",
@@ -5,6 +7,12 @@ export default function YouTubeEmbed({
   url?: string;
   title?: string;
 }) {
+  const [playing, setPlaying] = useState(false);
+  const [thumbnailFailed, setThumbnailFailed] = useState(false);
+  useEffect(() => {
+    setPlaying(false);
+    setThumbnailFailed(false);
+  }, [url]);
   if (!url) return null;
   let id: string | null = null;
   let start = 0;
@@ -34,14 +42,38 @@ export default function YouTubeEmbed({
   return (
     <div className="youtube-video">
       <div className="youtube-frame">
-        <iframe
-          src={`https://www.youtube-nocookie.com/embed/${id}${start ? `?start=${start}` : ""}`}
-          title={title}
-          loading="lazy"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-          referrerPolicy="strict-origin-when-cross-origin"
-        />
+        {playing ? (
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1${start ? `&start=${start}` : ""}`}
+            title={title}
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+        ) : (
+          <button
+            type="button"
+            className="youtube-poster"
+            aria-label={`Play ${title}`}
+            onClick={() => setPlaying(true)}
+          >
+            {!thumbnailFailed && (
+              <img
+                src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                width={480}
+                height={360}
+                onError={() => setThumbnailFailed(true)}
+              />
+            )}
+            <span className="youtube-play" aria-hidden="true">
+              ▶ Play video
+            </span>
+          </button>
+        )}
       </div>
       <a
         href={`https://www.youtube.com/watch?v=${id}${start ? `&t=${start}s` : ""}`}

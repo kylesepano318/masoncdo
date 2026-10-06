@@ -11,18 +11,31 @@ use Illuminate\Support\Facades\Mail;
 
 class ApplicationNotificationService
 {
-    public function recipient(): ?string
+    private function settings(): array
     {
-        return (SiteSetting::where('key', 'notifications')->first()?->value['application_notification_email'] ?? null) ?: config('lodge.notification_email');
+        return SiteSetting::where('key', 'notifications')->value('value') ?? [];
     }
 
-    public function send(LodgeApplication $application, bool $force = false): bool
+    public function deliver(LodgeApplication $application): void
     {
-        if (! $force && (SiteSetting::where('key', 'notifications')->first()?->value['send_application_notification_email'] ?? true) === false) {
+        $settings = $this->settings();
+        $this->send($application, false, $settings);
+        $this->acknowledge($application, $settings);
+    }
+
+    public function recipient(?array $settings = null): ?string
+    {
+        return (($settings ?? $this->settings())['application_notification_email'] ?? null) ?: config('lodge.notification_email');
+    }
+
+    public function send(LodgeApplication $application, bool $force = false, ?array $settings = null): bool
+    {
+        $settings ??= $this->settings();
+        if (! $force && ($settings['send_application_notification_email'] ?? true) === false) {
             return false;
         }
         try {
-            $email = $this->recipient();
+            $email = $this->recipient($settings);
             if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 throw new \RuntimeException('Notification recipient is not configured.');
             }
@@ -39,9 +52,9 @@ class ApplicationNotificationService
         }
     }
 
-    public function acknowledge(LodgeApplication $application): void
+    public function acknowledge(LodgeApplication $application, ?array $settings = null): void
     {
-        if (! (SiteSetting::where('key', 'notifications')->first()?->value['send_applicant_confirmation_email'] ?? false)) {
+        if (! (($settings ?? $this->settings())['send_applicant_confirmation_email'] ?? false)) {
             return;
         }
         try {

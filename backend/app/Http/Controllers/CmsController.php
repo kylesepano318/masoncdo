@@ -15,7 +15,7 @@ class CmsController extends Controller
 {
     public function edit(Page $page)
     {
-        return response()->json(['page' => $page->load('sections'), 'media' => Media::latest()->get()]);
+        return response()->json(['page' => $page->load('sections'), 'media' => Media::pickerItems()]);
     }
 
     public function update(Request $r, Page $page)

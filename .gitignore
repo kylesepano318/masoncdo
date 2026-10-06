@@ -11,6 +11,7 @@
 /frontend/node_modules/
 /frontend/test-results/
 /frontend/test-results-admin/
+/frontend/test-results-public/
 /frontend/playwright-report/
 /.local/
 

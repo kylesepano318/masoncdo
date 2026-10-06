@@ -14,7 +14,7 @@ class SettingsController extends Controller
     {
         abort_unless(in_array($group, ['branding', 'theme', 'navigation', 'header', 'footer', 'account', 'notifications']), 404);
 
-        return response()->json(['group' => $group, 'settings' => SiteSetting::allValues(), 'media' => Media::latest()->get()]);
+        return response()->json(['group' => $group, 'settings' => SiteSetting::allValues(), 'media' => $group === 'branding' ? Media::pickerItems() : []]);
     }
 
     public function update(Request $r, string $group)
@@ -36,7 +36,7 @@ class SettingsController extends Controller
 
     public function affiliations()
     {
-        return response()->json(['affiliations' => Affiliation::orderBy('display_order')->get(), 'media' => Media::latest()->get()]);
+        return response()->json(['affiliations' => Affiliation::orderBy('display_order')->get(), 'media' => Media::pickerItems()]);
     }
 
     public function affiliation(Request $r, ?Affiliation $affiliation = null)

@@ -6,6 +6,7 @@ use App\Http\Resources\ApplicationResource;
 use App\Models\LodgeApplication;
 use App\Models\Member;
 use App\Models\Page;
+use App\Services\ApplicationCounts;
 use App\Services\ApplicationNotificationService;
 use App\Services\ApplicationService;
 use App\Support\Audit;
@@ -15,14 +16,17 @@ use Illuminate\Support\Facades\Mail;
 
 class ApiApplicationController extends Controller
 {
-    public function counts()
+    public function counts(ApplicationCounts $counts)
     {
-        return response()->json(['pending' => LodgeApplication::where('status', 'pending')->count(), 'unread' => LodgeApplication::where('is_read_by_admin', false)->count(), 'this_month' => LodgeApplication::whereBetween('submitted_at', [now()->startOfMonth(), now()->endOfMonth()])->count()]);
+        return response()->json($counts->get());
     }
 
-    public function dashboard()
+    public function dashboard(ApplicationCounts $counts)
     {
-        return response()->json(['counts' => ['total members' => Member::count(), 'active members' => Member::where('status', 'active')->count(), 'pending applications' => LodgeApplication::where('status', 'pending')->count(), 'unread applications' => LodgeApplication::where('is_read_by_admin', false)->count(), 'applications this month' => LodgeApplication::whereBetween('submitted_at', [now()->startOfMonth(), now()->endOfMonth()])->count()], 'recentApplications' => LodgeApplication::latest('submitted_at')->limit(8)->get(['id', 'reference_number', 'first_name', 'last_name', 'submitted_at', 'status', 'is_read_by_admin']), 'activity' => DB::table('activity_logs')->latest()->limit(12)->get(), 'pages' => Page::all(['id', 'slug', 'name'])]);
+        $applications = $counts->get();
+        $members = Member::query()->selectRaw("COUNT(*) AS total, COUNT(CASE WHEN status = 'active' THEN 1 END) AS active")->first();
+
+        return response()->json(['counts' => ['total members' => (int) $members->total, 'active members' => (int) $members->active, 'pending applications' => $applications['pending'], 'unread applications' => $applications['unread'], 'applications this month' => $applications['this_month']], 'recentApplications' => LodgeApplication::latest('submitted_at')->limit(8)->get(['id', 'reference_number', 'first_name', 'last_name', 'submitted_at', 'status', 'is_read_by_admin']), 'activity' => DB::table('activity_logs')->latest()->limit(12)->get(), 'pages' => Page::all(['id', 'slug', 'name'])]);
     }
 
     public function index(Request $r)
@@ -37,14 +41,16 @@ class ApiApplicationController extends Controller
 
     public function show(LodgeApplication $application)
     {
-        $application->update(['is_read_by_admin' => true]);
+        if (! $application->is_read_by_admin) {
+            $application->update(['is_read_by_admin' => true]);
+        }
 
         return response()->json(['application' => (new ApplicationResource($application))->resolve()]);
     }
 
     public function status(Request $r, LodgeApplication $application)
     {
-        $application->update($r->validate(['status' => 'required|in:pending,under_review,approved,rejected']) + ['reviewed_at' => now()]);
+        $application->update($r->validate(['status' => 'required|in:pending,under_review,approved,rejected', 'admin_notes' => 'sometimes|nullable|string|max:10000']) + ['reviewed_at' => now()]);
         Audit::log('Application Status Changed', ['application_id' => $application->id]);
 
         return response()->json(['message' => 'Application status updated.']);
@@ -87,7 +93,7 @@ class ApiApplicationController extends Controller
 
             return response()->json(['message' => 'Test email sent.']);
         } catch (\Throwable $e) {
-            return response()->json(['message' => 'Test email failed. Check the configured recipient and server mail settings.'],422);
+            return response()->json(['message' => 'Test email failed. Check the configured recipient and server mail settings.'], 422);
         }
     }
 }

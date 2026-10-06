@@ -36,7 +36,7 @@ class ApiPublicController extends Controller
 
     public function members()
     {
-        return PublicMemberResource::collection(Member::with('position')->where('is_public', true)->where('status', 'active')->get()->sortBy(fn ($m) => [$m->position->rank, $m->display_order])->values());
+        return PublicMemberResource::collection($this->publicMembers());
     }
 
     public function page(Request $r, string $slug)
@@ -53,7 +53,33 @@ class ApiPublicController extends Controller
 
     private function pageResponse(Page $page, bool $preview)
     {
-        return response()->json(['page' => $page->only('name', 'slug', 'meta_title', 'meta_description', 'seo'), 'sections' => collect($preview ? $page->sections->toArray() : ($page->published_sections ?? []))->where('is_visible', true)->values(), 'members' => PublicMemberResource::collection(Member::with('position')->where('is_public', true)->where('status', 'active')->get()->sortBy(fn ($m) => [$m->position->rank, $m->display_order])->values())->resolve(), 'affiliations' => Affiliation::where('is_visible', true)->orderBy('display_order')->get(), 'celebrations' => Celebration::with('type')->where('is_public', true)->where('event_date', '<=', today()->endOfYear()->toDateString())->orderBy('event_date')->get(['id', 'title', 'category', 'event_date', 'location', 'description', 'image', 'gallery']), 'today' => today()->toDateString(), 'preview' => $preview]);
+        $sections = collect($preview ? $page->sections->toArray() : ($page->published_sections ?? []))->where('is_visible', true)->values();
+        $types = $sections->pluck('section_type');
+        $members = $types->intersect(['officers', 'members_grid'])->isNotEmpty()
+            ? PublicMemberResource::collection($this->publicMembers(! $types->contains('members_grid')))->resolve() : [];
+        $celebrations = collect();
+        if ($types->contains('celebrations')) {
+            $query = Celebration::with('type:id,slug,name')->where('is_public', true)->where('event_date', '<=', today()->endOfYear()->toDateString())->orderBy('event_date');
+            $showAll = $sections->where('section_type', 'celebrations')->contains(function ($section) use ($page) {
+                return ($section['settings']['display_mode'] ?? ($page->slug === 'home' ? 'preview' : 'all')) === 'all';
+            });
+            if (! $showAll) {
+                $query->where('event_date', '>=', today()->toDateString())->limit(3);
+            }
+            $celebrations = $query->get(['id', 'title', 'category', 'event_date', 'location', 'description', 'image', 'gallery']);
+        }
+
+        return response()->json(['page' => $page->only('name', 'slug', 'meta_title', 'meta_description', 'seo'), 'sections' => $sections, 'members' => $members, 'affiliations' => $types->contains('affiliations') ? Affiliation::where('is_visible', true)->orderBy('display_order')->get() : [], 'celebrations' => $celebrations, 'today' => today()->toDateString(), 'preview' => $preview]);
+    }
+
+    private function publicMembers(bool $officersOnly = false)
+    {
+        return Member::with('position:id,name,slug,rank,is_officer')
+            ->join('membership_positions', 'membership_positions.id', '=', 'members.membership_position_id')
+            ->where('members.is_public', true)->where('members.status', 'active')
+            ->when($officersOnly, fn ($query) => $query->where('membership_positions.is_officer', true))
+            ->orderBy('membership_positions.rank')->orderBy('members.display_order')->orderBy('members.id')
+            ->get(['members.id', 'members.first_name', 'members.middle_name', 'members.last_name', 'members.suffix', 'members.membership_position_id', 'members.profile_photo', 'members.member_since', 'members.biography']);
     }
 
     public function submit(ApplicationRequest $r, ApplicationService $service)

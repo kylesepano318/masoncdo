@@ -16,7 +16,7 @@ class CelebrationController extends Controller
 {
     public function index()
     {
-        return response()->json(['celebrations' => Celebration::with('type')->orderByDesc('event_date')->paginate(20), 'members' => Member::select('id', 'first_name', 'last_name')->get(), 'media' => Media::latest()->get(), 'types' => CelebrationType::withCount('celebrations')->orderBy('name')->get()]);
+        return response()->json(['celebrations' => Celebration::with('type')->orderByDesc('event_date')->paginate(20), 'members' => Member::select('id', 'first_name', 'last_name')->get(), 'media' => Media::pickerItems(), 'types' => CelebrationType::withCount('celebrations')->orderBy('name')->get()]);
     }
 
     public function save(Request $r, ?Celebration $celebration = null)

@@ -24,8 +24,7 @@ class ApplicationService
 
             return $record;
         });
-        app(ApplicationNotificationService::class)->send($record);
-        app(ApplicationNotificationService::class)->acknowledge($record);
+        app(ApplicationNotificationService::class)->deliver($record);
 
         return $record;
     }

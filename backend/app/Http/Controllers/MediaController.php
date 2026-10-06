@@ -13,7 +13,9 @@ class MediaController extends Controller
 {
     public function index(Request $r)
     {
-        return response()->json(['media' => Media::when($r->query('search'), fn ($q, $s) => $q->where('original_name', 'ilike', "%$s%"))->latest()->paginate(24)->withQueryString()]);
+        $data = $r->validate(['search' => 'nullable|string|max:255']);
+
+        return response()->json(['media' => Media::select(['id', 'path', 'original_name', 'alt_text', 'caption'])->when($data['search'] ?? null, fn ($q, $s) => $q->where(fn ($q) => $q->where('original_name', 'ilike', "%$s%")->orWhere('alt_text', 'ilike', "%$s%")))->latest('id')->paginate(24)->withQueryString()]);
     }
 
     public function store(MediaRequest $r, CloudinaryService $cloud)

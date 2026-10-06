@@ -23,6 +23,9 @@ test("administrator manages members, birthday visibility, applications, and CMS 
     page.getByRole("link", { name: "Admin Login", exact: true }),
   ).toHaveAttribute("href", "/admin/login");
   await page.getByRole("link", { name: "Admin Login", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Administrator login", exact: true }),
+  ).toBeVisible();
   await page.getByLabel("Email address").fill(process.env.TEST_ADMIN_EMAIL!);
   await page
     .getByLabel("Password", { exact: true })

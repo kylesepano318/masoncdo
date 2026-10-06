@@ -8,7 +8,13 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { http, settingsApi, authApi } from "./lib/api";
+import {
+  http,
+  settingsApi,
+  authApi,
+  cachedGet,
+  clearIdentity,
+} from "./lib/api";
 import { SiteContext, SubmissionStatus, useSubmitting } from "./lib/ui";
 import type { Shared } from "./types";
 import "./styles.css";
@@ -30,7 +36,9 @@ function App() {
     [screen, setScreen] = useState<{
       component: ComponentType<Record<string, unknown>>;
       props: Record<string, unknown>;
+      key: string;
     } | null>(null),
+    [loading, setLoading] = useState(true),
     [error, setError] = useState("");
   useEffect(() => {
     const refresh = () => reload((v) => v + 1);
@@ -58,39 +66,36 @@ function App() {
       location.pathname === "/admin/login"
     )
       return;
-    const timer = setInterval(
-      () =>
-        http
-          .get("/admin/applications/counts")
-          .then((r) => setShared((v) => ({ ...v, unread: r.data.unread })))
-          .catch(() => {}),
-      30000,
-    );
-    return () => clearInterval(timer);
+    let polling = false;
+    const controller = new AbortController();
+    const timer = setInterval(() => {
+      if (document.hidden || polling) return;
+      polling = true;
+      void http
+        .get("/admin/applications/counts", { signal: controller.signal })
+        .then((r) => setShared((v) => ({ ...v, unread: r.data.unread })))
+        .catch(() => {})
+        .finally(() => {
+          polling = false;
+        });
+    }, 30000);
+    return () => {
+      clearInterval(timer);
+      controller.abort();
+    };
   }, [location.pathname]);
   useEffect(() => {
     let cancelled = false;
-    setScreen(null);
+    const controller = new AbortController();
+    setLoading(true);
     setError("");
     async function load() {
       try {
-        const site = (await settingsApi.site()).data.site;
         let auth: Shared["auth"] = { user: null },
           adminPages: Shared["adminPages"] = [],
           unread = 0;
         const path = location.pathname,
           isAdmin = path.startsWith("/admin/") && path !== "/admin/login";
-        if (isAdmin || path.startsWith("/preview/")) {
-          const me = (await authApi.me()).data;
-          auth = { user: me.user };
-          adminPages = me.pages;
-          unread = me.unread;
-        } else {
-          const session = await authApi
-            .session()
-            .catch(() => ({ data: { user: null } }));
-          auth = { user: session.data.user };
-        }
         let name = "public/Page",
           endpoint = "",
           props: Record<string, unknown> = {};
@@ -140,7 +145,27 @@ function App() {
           name = slug === "application" ? "public/Application" : "public/Page";
         }
         if (!name) throw new Error("Page not found.");
-        if (endpoint) props = (await http.get(endpoint)).data;
+        const protectedPage = isAdmin || path.startsWith("/preview/");
+        const [siteResponse, identity, pageResponse, module] =
+          await Promise.all([
+            settingsApi.site(),
+            protectedPage
+              ? authApi.me()
+              : authApi.session().catch(() => ({ data: { user: null } })),
+            endpoint
+              ? endpoint.startsWith("/public/")
+                ? cachedGet(endpoint)
+                : http.get(endpoint, { signal: controller.signal })
+              : Promise.resolve({ data: props }),
+            modules[`./pages/${name}.tsx`](),
+          ]);
+        const site = siteResponse.data.site;
+        auth = { user: identity.data.user };
+        if (protectedPage) {
+          adminPages = identity.data.pages;
+          unread = identity.data.unread;
+        }
+        props = pageResponse.data;
         if (Array.isArray(props.members))
           props.members = props.members.map((m: Record<string, unknown>) =>
             m.full_name
@@ -152,16 +177,28 @@ function App() {
                 }
               : m,
           );
-        const component = (await modules[`./pages/${name}.tsx`]()).default;
+        const component = module.default;
         if (!cancelled) {
           setShared((v) => ({ ...v, site, auth, adminPages, unread }));
-          setScreen({ component, props });
+          setScreen({
+            component,
+            props,
+            key: location.pathname + location.search + ":" + revision,
+          });
         }
       } catch (e) {
         if (cancelled) return;
         const status = (e as { response?: { status: number } }).response
           ?.status;
         if (status === 401) {
+          clearIdentity();
+          setShared((v) => ({
+            ...v,
+            auth: { user: null },
+            adminPages: [],
+            unread: 0,
+          }));
+          setScreen(null);
           navigate("/admin/login", { replace: true });
           return;
         }
@@ -172,16 +209,22 @@ function App() {
               ? "You do not have access to this page."
               : "Unable to load this page. Please try again.",
         );
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     }
     void load();
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [location.pathname, location.search, location.state, revision, navigate]);
   return (
     <SiteContext.Provider value={shared}>
-      <div inert={submitting} aria-busy={submitting}>
+      <div
+        inert={submitting || (loading && !!screen)}
+        aria-busy={submitting || loading}
+      >
         {error ? (
           <main className="section">
             <h1>{error}</h1>
@@ -189,13 +232,19 @@ function App() {
             <a href="/">Return home</a>
           </main>
         ) : screen ? (
-          <screen.component {...screen.props} />
+          <screen.component key={screen.key} {...screen.props} />
         ) : (
           <main className="section" role="status">
             Loading…
           </main>
         )}
       </div>
+      {loading && screen && (
+        <div className="page-loading" role="status" aria-live="polite">
+          <span className="submission-spinner" aria-hidden="true" />
+          Loading page…
+        </div>
+      )}
       <SubmissionStatus />
     </SiteContext.Provider>
   );

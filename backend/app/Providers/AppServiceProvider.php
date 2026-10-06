@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Mail\Transport\GmailApiTransport;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -22,6 +24,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        DB::listen(function (QueryExecuted $query) {
+            $metrics = $this->app['request']->attributes->get('lodge.query_metrics');
+            if ($metrics) {
+                $metrics->queries++;
+                $metrics->milliseconds += $query->time;
+            }
+        });
         Mail::extend('gmail_api', fn (array $config) => new GmailApiTransport(
             (string) ($config['client_id'] ?? ''),
             (string) ($config['client_secret'] ?? ''),

@@ -86,8 +86,16 @@ Public browser tests expect the local API and Vite servers running. The isolated
 
 The refactor removes Inertia and Laravel's Vite coupling. Existing migrations and business records are preserved by a new additive/column-rename migration. Legacy `/storage/...` image references require uploading those images to Cloudinary and replacing their CMS references before deployment. No hosting accounts have been published or external SMTP/Cloudinary credentials configured here. Social metadata is updated in the browser; crawler-specific pre-rendering would be a separate frontend deployment enhancement.
 
-Latest local verification: **29 PHP tests / 203 assertions**, **6 public browser checks + 1 complete admin workflow**, TypeScript checks and production frontend build passed. Two browser cases are intentionally skipped on the inapplicable device project. Composer validation, PHP formatting, and route/view caching passed. The Docker configuration was reviewed; a container build was unavailable because Docker Desktop's Linux engine was not running.
+Latest local verification: **44 PHP tests / 325 assertions**, **6 public browser checks + 1 complete admin workflow + 2 performance browser checks**, TypeScript checks and production frontend build passed. Two browser cases are intentionally skipped on the inapplicable device project. PHP formatting passed. The Docker configuration was reviewed; a container build was unavailable because Docker Desktop's Linux engine was not running.
 
+
+## Page performance
+
+Page data, shared branding, login status, and React page modules load concurrently. Branding is reused in memory for five minutes; login status and public page responses for 30 seconds. Successful writes invalidate affected data, and login/logout clear identity caches. Private application and member pages are not cached. Navigation keeps the current page visible behind a waiting indicator until fresh data arrives, and cancels superseded private reads. Unread polling pauses in hidden tabs and avoids overlapping requests. Existing double-submit guards remain active.
+
+Editor image pickers initially include only the newest 24 images. **Browse media library** provides paginated search for older images without losing the current selection or submitting the surrounding form. Public pages fetch members, affiliations, and celebrations only for sections that need them; compact celebration previews fetch only the next three events. Dashboard counts use combined queries, and application status and notes save together. YouTube players load after clicking **Play video** rather than downloading player scripts during page load.
+
+Migration `2026_10_06_000006` adds indexes for listing and filtering without changing records. Render applies it during deployment. API responses include a `Server-Timing` header with application duration, database duration, and query count only. Inspect this header in the browser's Network panel after deployment to distinguish database work from connection/network delays. No SQL statements or credentials are included. Run `scripts/verify-admin.ps1 -SameOrigin -Public` for the isolated admin, performance, desktop, and mobile checks. These changes keep Vercel, Render, and Supabase in place; hosting migration is deferred. Application emails still send after the database commit within the request; reliable background delivery would require a queue worker.
 
 ## Celebration images and types
 

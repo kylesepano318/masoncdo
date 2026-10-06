@@ -1,4 +1,4 @@
-param([switch]$SameOrigin)
+param([switch]$SameOrigin, [switch]$Public)
 $ErrorActionPreference = 'Stop'
 $taskRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $taskBackend = Join-Path $taskRoot 'backend'
@@ -41,8 +41,12 @@ try {
     Pop-Location
     Push-Location $taskFrontend
     $taskVite = Start-Process -FilePath (Get-Command node.exe).Source -ArgumentList @('node_modules/vite/bin/vite.js','--host','127.0.0.1','--port','5174','--strictPort') -WorkingDirectory $taskFrontend -WindowStyle Hidden -PassThru
-    npx.cmd playwright test tests/admin.spec.ts --project=desktop --workers=1 --output=test-results-admin
+    npx.cmd playwright test tests/admin.spec.ts tests/performance.spec.ts --project=desktop --workers=1 --output=test-results-admin
     if ($LASTEXITCODE -ne 0) { throw 'Admin browser test failed' }
+    if ($Public) {
+        npx.cmd playwright test tests/public.spec.ts --workers=1 --output=test-results-public
+        if ($LASTEXITCODE -ne 0) { throw 'Public browser test failed' }
+    }
     Pop-Location
 } finally {
     if ($taskServer -and -not $taskServer.HasExited) { Stop-Process -Id $taskServer.Id }
