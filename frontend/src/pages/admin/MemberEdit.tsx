@@ -144,7 +144,7 @@ export default function MemberEdit({
           </div>
         )}
         <button className="admin-button" disabled={f.processing}>
-          Save member
+          {f.processing ? "Saving…" : "Save member"}
         </button>
       </form>
     </AdminLayout>

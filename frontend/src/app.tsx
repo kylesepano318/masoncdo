@@ -9,13 +9,14 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { http, settingsApi, authApi } from "./lib/api";
-import { SiteContext } from "./lib/ui";
+import { SiteContext, SubmissionStatus, useSubmitting } from "./lib/ui";
 import type { Shared } from "./types";
 import "./styles.css";
 const modules = import.meta.glob<{
   default: ComponentType<Record<string, unknown>>;
 }>("./pages/**/*.tsx");
 function App() {
+  const submitting = useSubmitting();
   const location = useLocation(),
     navigate = useNavigate();
   const [shared, setShared] = useState<Shared>({
@@ -180,19 +181,22 @@ function App() {
   }, [location.pathname, location.search, location.state, revision, navigate]);
   return (
     <SiteContext.Provider value={shared}>
-      {error ? (
-        <main className="section">
-          <h1>{error}</h1>
-          <button onClick={() => reload((v) => v + 1)}>Try again</button>{" "}
-          <a href="/">Return home</a>
-        </main>
-      ) : screen ? (
-        <screen.component {...screen.props} />
-      ) : (
-        <main className="section" role="status">
-          Loading…
-        </main>
-      )}
+      <div inert={submitting} aria-busy={submitting}>
+        {error ? (
+          <main className="section">
+            <h1>{error}</h1>
+            <button onClick={() => reload((v) => v + 1)}>Try again</button>{" "}
+            <a href="/">Return home</a>
+          </main>
+        ) : screen ? (
+          <screen.component {...screen.props} />
+        ) : (
+          <main className="section" role="status">
+            Loading…
+          </main>
+        )}
+      </div>
+      <SubmissionStatus />
     </SiteContext.Provider>
   );
 }

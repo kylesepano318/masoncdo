@@ -2,13 +2,17 @@ import { Link, apiActions } from "../../lib/ui";
 import { useState } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
 import Pagination from "../../components/admin/Pagination";
-import type { AdminMember, Paginated } from "../../types";
+import MembershipPositionForm from "../../components/admin/MembershipPositionForm";
+import type { AdminMember, Paginated, Position } from "../../types";
 export default function Members({
   members,
+  positions,
 }: {
   members: Paginated<AdminMember>;
+  positions: Position[];
 }) {
   const [search, setSearch] = useState("");
+  const [addingPosition, setAddingPosition] = useState(false);
   const move = (index: number, direction: number) => {
     const ids = members.data.map((m) => m.id);
     const target = index + direction;
@@ -20,11 +24,25 @@ export default function Members({
     <AdminLayout
       title="Members"
       actions={
-        <Link className="admin-button" href="/admin/members/create">
-          Add member
-        </Link>
+        <>
+          <button
+            className="admin-button secondary"
+            onClick={() => setAddingPosition(true)}
+          >
+            Add position
+          </button>
+          <Link className="admin-button" href="/admin/members/create">
+            Add member
+          </Link>
+        </>
       }
     >
+      {addingPosition && (
+        <MembershipPositionForm
+          positions={positions}
+          onClose={() => setAddingPosition(false)}
+        />
+      )}
       <form
         className="search-bar"
         onSubmit={(e) => {

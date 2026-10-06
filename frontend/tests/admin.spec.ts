@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 test("administrator manages members, birthday visibility, applications, and CMS publishing", async ({
   page,
 }) => {
-  test.setTimeout(120000);
+  test.setTimeout(180000);
   test.skip(
     !process.env.TEST_ADMIN_EMAIL,
     "Use scripts/verify-admin.ps1 for isolated admin tests.",
@@ -39,7 +39,89 @@ test("administrator manages members, birthday visibility, applications, and CMS 
   ).toBeVisible();
   await page.getByRole("link", { name: "Admin", exact: true }).click();
   await expect(page).toHaveURL(/admin\/dashboard/);
+  await page.goto("/admin/members");
+  for (const position of [
+    { name: "Honorary Member", officer: false },
+    { name: "Secretary", officer: true },
+  ]) {
+    await page
+      .getByRole("button", { name: "Add position", exact: true })
+      .click();
+    await page.getByLabel("Position name", { exact: true }).fill(position.name);
+    if (position.officer)
+      await page
+        .getByLabel("Officer position — one active member at a time")
+        .check();
+    if (!position.officer) {
+      let attempts = 0;
+      let release!: () => void;
+      let fail = true;
+      await page.route("**/api/admin/membership-positions", async (route) => {
+        if (route.request().method() !== "POST") return route.continue();
+        attempts++;
+        await new Promise<void>((resolve) => {
+          release = resolve;
+        });
+        if (fail) {
+          await route.fulfill({
+            status: 422,
+            contentType: "application/json",
+            body: JSON.stringify({
+              errors: { name: ["Please try saving again."] },
+            }),
+          });
+        } else await route.continue();
+      });
+      const submitTwice = () =>
+        page
+          .locator("button[type=submit], button.admin-button")
+          .filter({ hasText: "Save position" })
+          .evaluate((button) => {
+            const form = (button as HTMLButtonElement).form!;
+            form.requestSubmit();
+            form.requestSubmit();
+          });
+      await submitTwice();
+      await expect(
+        page.getByRole("status").filter({ hasText: "Submitting" }),
+      ).toBeVisible();
+      await expect(
+        page.locator("button").filter({ hasText: "Saving…" }),
+      ).toBeDisabled();
+      await expect.poll(() => attempts).toBe(1);
+      release();
+      await expect(
+        page
+          .locator(".field-error")
+          .filter({ hasText: "Please try saving again." }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: "Save position", exact: true }),
+      ).toBeEnabled();
+      fail = false;
+      await submitTwice();
+      await expect.poll(() => attempts).toBe(2);
+      release();
+    } else {
+      await page
+        .getByRole("button", { name: "Save position", exact: true })
+        .click();
+    }
+    await expect(
+      page.getByRole("heading", {
+        name: "Add membership position",
+        exact: true,
+      }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByText("Membership position added.", { exact: true }),
+    ).toBeVisible();
+    await page.unroute("**/api/admin/membership-positions");
+  }
   await page.goto("/admin/members/create");
+  await page
+    .getByLabel("Membership position", { exact: true })
+    .selectOption({ label: "Honorary Member" });
   await page.getByLabel("First name").fill("Browser");
   await page.getByLabel("Last name").fill("Member");
   await page.getByRole("button", { name: "Save member" }).click();
@@ -47,18 +129,147 @@ test("administrator manages members, birthday visibility, applications, and CMS 
   await expect(
     page.getByRole("cell", { name: "Browser Member" }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("row").filter({ hasText: "Browser Member" }),
+  ).toContainText("Honorary Member");
+  await page.goto("/admin/members/create");
+  await page.getByLabel("First name").fill("Secretary");
+  await page.getByLabel("Last name").fill("LodgeOfficer");
+  await page
+    .getByLabel("Membership position", { exact: true })
+    .selectOption({ label: "Secretary" });
+  await page.getByRole("button", { name: "Save member", exact: true }).click();
+  await expect(page).toHaveURL(/admin\/members$/);
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(
+    page
+      .locator(".officers-section")
+      .getByRole("heading", { name: "Secretary LodgeOfficer", exact: true }),
+  ).toBeVisible();
   await page.goto("/admin/celebrations");
+  for (const name of ["Installation Ceremony", "Temporary Type"]) {
+    await page
+      .getByRole("button", { name: "Manage types", exact: true })
+      .click();
+    await page.getByLabel("Celebration type name", { exact: true }).fill(name);
+    await page.getByRole("button", { name: "Add type", exact: true }).click();
+    await expect(
+      page.getByText("Celebration type added.", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Celebration types", exact: true }),
+    ).toHaveCount(0);
+  }
+  await page.getByRole("button", { name: "Manage types", exact: true }).click();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page
+    .getByRole("button", { name: "Delete type Temporary Type", exact: true })
+    .click();
+  await expect(
+    page.getByText("Celebration type deleted.", { exact: true }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Add celebration" }).click();
+  await expect(
+    page
+      .getByLabel("Celebration type", { exact: true })
+      .locator("option")
+      .filter({ hasText: "Installation Ceremony" }),
+  ).toHaveCount(1);
   await expect(
     page.getByLabel("Public — display this celebration on the website"),
   ).toBeChecked();
   const year = new Date().getFullYear();
   await page.getByLabel("Title *", { exact: true }).fill("Birthday this year");
   await page.getByLabel("Celebration date").fill(`${year}-12-31`);
+  let uploadedImages = 0;
+  await page.route("**/api/admin/media", async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    uploadedImages++;
+    await route.fulfill({
+      status: 201,
+      contentType: "application/json",
+      body: JSON.stringify({
+        message: "Image uploaded.",
+        media: {
+          id: 1000 + uploadedImages,
+          path:
+            uploadedImages === 1
+              ? "/images/lodge-brethren.jpg"
+              : "/images/lodge-ceremony.jpg",
+          original_name: "greeting.png",
+          alt_text: "Uploaded greeting",
+          caption: null,
+        },
+      }),
+    });
+  });
+  const imageFile = {
+    name: "greeting.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a1ioAAAAASUVORK5CYII=",
+      "base64",
+    ),
+  };
+  await page
+    .getByLabel("Choose featured photograph file", { exact: true })
+    .setInputFiles(imageFile);
+  await page
+    .getByRole("button", { name: "Upload featured photograph", exact: true })
+    .click();
+  await expect(
+    page.getByLabel("Featured photograph", { exact: true }),
+  ).toHaveValue("/images/lodge-brethren.jpg");
+  await expect(page.getByLabel("Title *", { exact: true })).toHaveValue(
+    "Birthday this year",
+  );
+  await page
+    .getByRole("button", { name: "Add photograph", exact: true })
+    .click();
+  await page
+    .getByLabel("Choose photograph file", { exact: true })
+    .setInputFiles(imageFile);
+  await page
+    .getByRole("button", { name: "Upload photograph", exact: true })
+    .click();
+  await expect(page.getByLabel("Photograph", { exact: true })).toHaveValue(
+    "/images/lodge-ceremony.jpg",
+  );
+  await page
+    .getByLabel("Photo caption", { exact: true })
+    .fill("Birthday gathering");
+  await page
+    .getByRole("button", { name: "Add photograph", exact: true })
+    .click();
+  await page
+    .getByLabel("Photograph", { exact: true })
+    .nth(1)
+    .selectOption("/images/lodge-brethren.jpg");
+  await page
+    .getByLabel("Photo caption", { exact: true })
+    .nth(1)
+    .fill("With the brethren");
+  expect(uploadedImages).toBe(2);
+  await page.unroute("**/api/admin/media");
   await page.getByRole("button", { name: "Save celebration" }).click();
   await expect(
     page.getByRole("cell", { name: "Birthday this year", exact: true }),
   ).toBeVisible();
+  await page
+    .getByRole("row")
+    .filter({ hasText: "Birthday this year" })
+    .getByRole("button", { name: "Edit", exact: true })
+    .click();
+  await expect(
+    page.getByLabel("Featured photograph", { exact: true }),
+  ).toHaveValue("/images/lodge-brethren.jpg");
+  await expect(page.getByLabel("Photo caption", { exact: true })).toHaveCount(
+    2,
+  );
+  await expect(
+    page.getByLabel("Photo caption", { exact: true }).first(),
+  ).toHaveValue("Birthday gathering");
+  await page.getByRole("button", { name: "Close ×", exact: true }).click();
   await page.getByRole("button", { name: "Add celebration" }).click();
   await page
     .getByLabel("Title *", { exact: true })
@@ -168,10 +379,34 @@ test("administrator manages members, birthday visibility, applications, and CMS 
   await expect(
     page.getByText("Settings saved.", { exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Send test email" }).click();
+  let testEmailRequests = 0;
+  let releaseTestEmail!: () => void;
+  await page.route(
+    "**/api/admin/settings/notifications/test-email",
+    async (route) => {
+      testEmailRequests++;
+      await new Promise<void>((resolve) => {
+        releaseTestEmail = resolve;
+      });
+      await route.continue();
+    },
+  );
+  await page
+    .getByRole("button", { name: "Send test email" })
+    .evaluate((button) => {
+      button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+  await expect(
+    page.getByRole("status").filter({ hasText: "Submitting" }),
+  ).toBeVisible();
+  await expect.poll(() => testEmailRequests).toBe(1);
+  releaseTestEmail();
   await expect(
     page.getByText("Test email sent.", { exact: true }),
   ).toBeVisible();
+  expect(testEmailRequests).toBe(1);
+  await page.unroute("**/api/admin/settings/notifications/test-email");
   await page.getByRole("button", { name: "Logout" }).click();
   await expect(page).toHaveURL(/admin\/login/);
   await page.goto("/admin/dashboard");

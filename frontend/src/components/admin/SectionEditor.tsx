@@ -379,7 +379,7 @@ export default function SectionEditor({
           onChange={(v) => f.setData("is_visible", v)}
         />
         <button className="admin-button" disabled={f.processing}>
-          Save section to draft
+          {f.processing ? "Saving…" : "Save section to draft"}
         </button>
       </form>
     </div>

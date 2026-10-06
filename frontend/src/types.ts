@@ -86,6 +86,7 @@ export interface Celebration {
   id: number;
   title: string;
   category: string;
+  category_label?: string;
   event_date: string;
   location: string | null;
   description: string | null;
@@ -93,6 +94,12 @@ export interface Celebration {
   gallery: SectionItem[] | null;
   member_id?: number | null;
   is_public?: boolean;
+}
+export interface CelebrationType {
+  id: number;
+  name: string;
+  slug: string;
+  celebrations_count: number;
 }
 export interface Shared {
   [key: string]: unknown;

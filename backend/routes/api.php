@@ -4,9 +4,11 @@ use App\Http\Controllers\ApiApplicationController;
 use App\Http\Controllers\ApiAuthController;
 use App\Http\Controllers\ApiPublicController;
 use App\Http\Controllers\CelebrationController;
+use App\Http\Controllers\CelebrationTypeController;
 use App\Http\Controllers\CmsController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MemberController;
+use App\Http\Controllers\MembershipPositionController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +20,9 @@ Route::get('/public/pages/{slug}', [ApiPublicController::class, 'page']);
 Route::post('/applications', [ApiPublicController::class, 'submit'])->middleware('throttle:5,1');
 Route::post('/admin/login', [ApiAuthController::class, 'login'])->middleware('throttle:5,1');
 Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::post('/celebration-types', [CelebrationTypeController::class, 'store']);
+    Route::delete('/celebration-types/{celebrationType}', [CelebrationTypeController::class, 'destroy']);
+    Route::post('/membership-positions', [MembershipPositionController::class, 'store']);
     Route::get('/me', [ApiAuthController::class, 'me']);
     Route::post('/logout', [ApiAuthController::class, 'logout']);
     Route::put('/password', [ApiAuthController::class, 'password']);

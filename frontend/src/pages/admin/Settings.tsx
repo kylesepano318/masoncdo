@@ -38,7 +38,7 @@ function Password() {
         Use at least 12 characters with mixed case, a number, and a symbol.
       </p>
       <button className="admin-button" disabled={f.processing}>
-        Change password
+        {f.processing ? "Saving…" : "Change password"}
       </button>
     </form>
   );
@@ -132,7 +132,7 @@ export default function Settings({
             ),
           )}
           <button className="admin-button" disabled={f.processing}>
-            Save settings
+            {f.processing ? "Saving…" : "Save settings"}
           </button>
         </form>
       )}

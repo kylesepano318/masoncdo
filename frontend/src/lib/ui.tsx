@@ -4,6 +4,7 @@ import {
   useState,
   useRef,
   useEffect,
+  useSyncExternalStore,
   Children,
   isValidElement,
 } from "react";
@@ -83,7 +84,44 @@ export const navigate = (path: string, state?: unknown): void => {
     new CustomEvent("lodge:navigate", { detail: { path, state } }),
   );
 };
+let submitting = false;
+const submissionListeners = new Set<() => void>();
+function setSubmitting(value: boolean) {
+  submitting = value;
+  submissionListeners.forEach((listener) => listener());
+}
+function beginSubmission() {
+  // Acquire synchronously, before React renders or the CSRF request starts.
+  if (submitting) return false;
+  setSubmitting(true);
+  return true;
+}
+export function useSubmitting() {
+  return useSyncExternalStore(
+    (listener) => {
+      submissionListeners.add(listener);
+      return () => {
+        submissionListeners.delete(listener);
+      };
+    },
+    () => submitting,
+  );
+}
+export function SubmissionStatus() {
+  const pending = useSubmitting();
+  if (!pending) return null;
+  return (
+    <div className="submission-overlay">
+      <div className="submission-status" role="status" aria-live="polite">
+        <span className="submission-spinner" aria-hidden="true" />
+        <strong>Submitting…</strong>
+        <span>Please wait while we complete your request.</span>
+      </div>
+    </div>
+  );
+}
 type Options = {
+  refresh?: boolean;
   onSuccess?: (data: Record<string, unknown>) => void | Promise<void>;
   onFinish?: () => void;
   forceFormData?: boolean;
@@ -146,6 +184,7 @@ export function useApiForm<T extends Record<string, unknown>>(initial: T) {
         : initial,
     );
   const send = async (method: string, path: string, options: Options = {}) => {
+    if (!beginSubmission()) return;
     busy(true);
     setErrors({});
     try {
@@ -160,11 +199,12 @@ export function useApiForm<T extends Record<string, unknown>>(initial: T) {
       );
       await options.onSuccess?.(response.data);
       if (response.data.message) notice(response.data.message);
-      refresh();
+      if (options.refresh !== false) refresh();
     } catch (e) {
       setErrors(errorsOf(e));
     } finally {
       busy(false);
+      setSubmitting(false);
       options.onFinish?.();
     }
   };
@@ -183,6 +223,7 @@ export function useApiForm<T extends Record<string, unknown>>(initial: T) {
   };
 }
 async function action(method: string, path: string, data?: unknown) {
+  if (!beginSubmission()) return;
   try {
     const response = await mutation(method, path, data);
     notice(response.data.message || "Changes saved.");
@@ -190,6 +231,8 @@ async function action(method: string, path: string, data?: unknown) {
     refresh();
   } catch (e) {
     notice(Object.values(errorsOf(e)).join(" "));
+  } finally {
+    setSubmitting(false);
   }
 }
 export const apiActions = {

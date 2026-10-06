@@ -52,7 +52,7 @@ Notifications settings include the lodge recipient, an on/off toggle for new app
 
 ## Members, CMS and celebrations
 
-- The three officer positions each allow one active occupant. Confirmed replacement moves the old officer to Past Officer transactionally; normal membership is unlimited. Private and inactive members are omitted from public API resources.
+- Admin → Members → Add position creates membership categories with a name and display order. Regular positions allow multiple members; officer positions each allow one active occupant and appear in the public officers section. Confirmed replacement moves the old officer to Past Officer transactionally. Duplicate names are rejected. Private and inactive members are omitted from public API resources.
 - Page sections support drafts, authenticated previews at `/preview/{slug}`, publishing snapshots, drag-and-drop ordering, duplication, visibility, rich text, banners, images, document lightboxes, galleries, officers, history, affiliations and calls to action. HTML is sanitized server-side.
 - Branding, lodge/federation emblems, theme, navigation, contact information, header and footer are editable. Emblems use `object-contain`. Supplied assets live in `frontend/public/images`.
 - All new image uploads go through Laravel to Cloudinary with validated type/size, metadata, alternative text and captions. Referenced media is protected from deletion, including draft sections, published snapshots and galleries. Portrait replacement uploads first, saves the member, then safely cleans up the old asset.
@@ -88,6 +88,10 @@ The refactor removes Inertia and Laravel's Vite coupling. Existing migrations an
 
 Latest local verification: **29 PHP tests / 203 assertions**, **6 public browser checks + 1 complete admin workflow**, TypeScript checks and production frontend build passed. Two browser cases are intentionally skipped on the inapplicable device project. Composer validation, PHP formatting, and route/view caching passed. The Docker configuration was reviewed; a container build was unavailable because Docker Desktop's Linux engine was not running.
 
+
+## Celebration images and types
+
+In **Admin → Celebrations**, the featured photograph can be a custom greeting image independent of a member's profile. Choose a file and click **Upload featured photograph**, or select an existing image. Use **Add photograph** for up to 30 gallery photos, each with its own upload and caption. Uploads use the existing Cloudinary configuration and preserve unsaved celebration fields; click **Save celebration** afterwards. **Manage types** maintains the celebration type registry. New types become dropdown choices, and a type can only be deleted when no celebration uses it. Migration `2026_10_06_000005` preserves existing categories and adds the registry and database reference constraint; Render's startup migration applies it on redeployment.
 
 ## SIGLO homepage adaptation
 

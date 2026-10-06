@@ -75,7 +75,7 @@ export default function ApplicationDetail({
             />
           </Field>
           <button className="admin-button" disabled={f.processing}>
-            Save review
+            {f.processing ? "Saving…" : "Save review"}
           </button>
           <hr />
           <p className="help">

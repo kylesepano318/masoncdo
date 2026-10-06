@@ -140,14 +140,14 @@ export default function PageEditor({
             disabled={f.processing}
             onClick={() => save(false)}
           >
-            Save draft
+            {f.processing ? "Saving…" : "Save draft"}
           </button>
           <button
             className="admin-button"
             disabled={f.processing}
             onClick={() => save(true)}
           >
-            Publish
+            {f.processing ? "Submitting…" : "Publish"}
           </button>
         </>
       }

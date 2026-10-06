@@ -46,7 +46,7 @@ export default function Login() {
             onChange={(v) => f.setData("remember", v)}
           />
           <button className="admin-button" disabled={f.processing}>
-            Login
+            {f.processing ? "Signing in…" : "Login"}
           </button>
         </form>
         <Link href="/">← Return to the lodge website</Link>

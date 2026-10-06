@@ -35,7 +35,7 @@ function Details({ item }: { item: MediaItem }) {
       </Field>
       <div className="admin-actions">
         <button className="admin-button secondary" disabled={f.processing}>
-          Save details
+          {f.processing ? "Saving…" : "Save details"}
         </button>
         <button
           type="button"
@@ -100,7 +100,7 @@ export default function Media({ media }: { media: Paginated<MediaItem> }) {
           </Field>
         </div>
         <button className="admin-button" disabled={f.processing}>
-          Upload image
+          {f.processing ? "Uploading…" : "Upload image"}
         </button>
       </form>
       <form

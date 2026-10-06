@@ -3,10 +3,12 @@ import { useApiForm, apiActions } from "../../lib/ui";
 import AdminLayout from "../../layouts/AdminLayout";
 import { Field, Checkbox, Errors } from "../../components/ui/Form";
 import RichEditor from "../../components/admin/RichEditor";
+import CelebrationTypes from "../../components/admin/CelebrationTypes";
 import MediaPicker from "../../components/admin/MediaPicker";
 import Pagination from "../../components/admin/Pagination";
 import type {
   Celebration,
+  CelebrationType,
   MediaItem,
   Paginated,
   SectionItem,
@@ -16,16 +18,22 @@ function Editor({
   event,
   media,
   members,
+  types,
   onClose,
 }: {
   event: Celebration | null;
   media: MediaItem[];
   members: MemberChoice[];
+  types: CelebrationType[];
   onClose: () => void;
 }) {
   const f = useApiForm({
     title: event?.title || "",
-    category: event?.category || "birthday",
+    category:
+      event?.category ||
+      types.find((t) => t.slug === "birthday")?.slug ||
+      types[0]?.slug ||
+      "",
     event_date: event?.event_date || "",
     location: event?.location || "",
     description: event?.description || "",
@@ -62,18 +70,16 @@ function Editor({
         </Field>
         <Field label="Celebration type">
           <select
+            required
             value={f.data.category}
             onChange={(e) => f.setData("category", e.target.value)}
           >
-            {[
-              "birthday",
-              "degree_advancement",
-              "anniversary",
-              "fellowship",
-              "other",
-            ].map((c) => (
-              <option key={c} value={c}>
-                {c.replaceAll("_", " ")}
+            <option value="" disabled>
+              Select a type
+            </option>
+            {types.map((type) => (
+              <option key={type.id} value={type.slug}>
+                {type.name}
               </option>
             ))}
           </select>
@@ -118,15 +124,25 @@ function Editor({
       />
       <MediaPicker
         label="Featured photograph"
+        allowUpload
         media={media}
         value={f.data.image}
         onChange={(v) => f.setData("image", v)}
       />
+      <p className="help">
+        Choose a greeting image here independently of the associated member’s
+        profile photo.
+      </p>
       <h3>Celebration photographs</h3>
+      <p className="help">
+        Add multiple photographs and captions for birthdays, ceremonies, or
+        other celebrations (up to 30 photographs).
+      </p>
       {f.data.gallery.map((item, i) => (
         <div className="item-editor" key={i}>
           <MediaPicker
             label="Photograph"
+            allowUpload
             media={media}
             value={item.image || ""}
             onChange={(v) =>
@@ -168,6 +184,7 @@ function Editor({
       <button
         type="button"
         className="admin-button secondary"
+        disabled={f.data.gallery.length >= 30}
         onClick={() =>
           f.setData("gallery", [...f.data.gallery, { image: "", title: "" }])
         }
@@ -186,7 +203,7 @@ function Editor({
         needed.
       </p>
       <button className="admin-button" disabled={f.processing}>
-        Save celebration
+        {f.processing ? "Saving…" : "Save celebration"}
       </button>
     </form>
   );
@@ -195,19 +212,40 @@ export default function Celebrations({
   celebrations,
   media,
   members,
+  types,
 }: {
   celebrations: Paginated<Celebration>;
   media: MediaItem[];
   members: MemberChoice[];
+  types: CelebrationType[];
 }) {
+  const [showTypes, setShowTypes] = useState(false);
   const [editing, setEditing] = useState<Celebration | null | undefined>();
   return (
     <AdminLayout
       title="Celebrations & birthdays"
       actions={
-        <button className="admin-button" onClick={() => setEditing(null)}>
-          Add celebration
-        </button>
+        <div className="admin-actions">
+          <button
+            className="admin-button secondary"
+            onClick={() => {
+              setEditing(undefined);
+              setShowTypes(true);
+            }}
+          >
+            Manage types
+          </button>
+          <button
+            className="admin-button"
+            disabled={!types.length}
+            onClick={() => {
+              setShowTypes(false);
+              setEditing(null);
+            }}
+          >
+            Add celebration
+          </button>
+        </div>
       }
     >
       <p className="help">
@@ -215,12 +253,21 @@ export default function Celebrations({
         gatherings. Future-year entries are saved here and appear publicly when
         their year begins.
       </p>
+      {showTypes && (
+        <CelebrationTypes types={types} onClose={() => setShowTypes(false)} />
+      )}
+      {!types.length && (
+        <p className="help">
+          Add a celebration type before creating a celebration.
+        </p>
+      )}
       {editing !== undefined && (
         <Editor
           key={editing?.id || "new"}
           event={editing}
           media={media}
           members={members}
+          types={types}
           onClose={() => setEditing(undefined)}
         />
       )}
@@ -239,7 +286,7 @@ export default function Celebrations({
             {celebrations.data.map((c) => (
               <tr key={c.id}>
                 <td>{c.title}</td>
-                <td>{c.category.replaceAll("_", " ")}</td>
+                <td>{c.category_label || c.category.replaceAll("_", " ")}</td>
                 <td>{c.event_date}</td>
                 <td>
                   <span className="badge">

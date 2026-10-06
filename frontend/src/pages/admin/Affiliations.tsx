@@ -67,7 +67,9 @@ function Editor({
         checked={f.data.is_visible}
         onChange={(v) => f.setData("is_visible", v)}
       />
-      <button className="admin-button">Save affiliation</button>
+      <button className="admin-button" disabled={f.processing}>
+        {f.processing ? "Saving…" : "Save affiliation"}
+      </button>
       <button type="button" onClick={onClose}>
         Cancel
       </button>

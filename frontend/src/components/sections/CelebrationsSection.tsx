@@ -14,7 +14,9 @@ function Event({ event }: { event: Celebration }) {
         })}
       </time>
       <div>
-        <p className="eyebrow">{event.category.replaceAll("_", " ")}</p>
+        <p className="eyebrow">
+          {event.category_label || event.category.replaceAll("_", " ")}
+        </p>
         <h3>{event.title}</h3>
         {event.location && <p className="event-location">{event.location}</p>}
         <Body html={event.description} />

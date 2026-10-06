@@ -53,7 +53,7 @@ export default function Notifications({
       />
       <div className="admin-actions">
         <button className="admin-button" disabled={f.processing}>
-          Save notifications
+          {f.processing ? "Saving…" : "Save notifications"}
         </button>
         <button
           className="admin-button secondary"
