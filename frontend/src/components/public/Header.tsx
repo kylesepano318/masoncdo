@@ -10,7 +10,7 @@ export const navPaths = {
   application: "/application",
 };
 export default function Header() {
-  const { site } = useSiteContext<Shared>().props;
+  const { site, auth } = useSiteContext<Shared>().props;
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { url } = useSiteContext();
@@ -61,6 +61,9 @@ export default function Header() {
               {site.navigation?.[key] || key}
             </Link>
           ))}
+          <Link href={auth.user ? "/admin/dashboard" : "/admin/login"}>
+            {auth.user ? "Admin" : "Admin Login"}
+          </Link>
         </nav>
       </div>
     </header>

@@ -19,6 +19,7 @@ export async function mutation(method: string, path: string, data?: unknown) {
   return http.request({ method, url: path, data });
 }
 export const authApi = {
+  session: () => http.get("/public/session"),
   me: () => http.get("/admin/me"),
   login: (data: unknown) => mutation("post", "/admin/login", data),
   logout: () => mutation("post", "/admin/logout"),

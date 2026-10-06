@@ -10,6 +10,8 @@ An independent React/TypeScript frontend and Laravel REST API for the lodge in C
 | Uploaded images | Signed server-side uploads | Cloudinary |
 | Email | Laravel Mail with configurable SMTP | Any compatible provider |
 
+Gmail API is also supported for Render Free: see [Gmail OAuth setup](docs/gmail-api.md). It sends both lodge notifications and applicant reference acknowledgments using HTTPS and backend-only refresh tokens.
+
 ## Local installation
 
 The existing workspace uses PostgreSQL on **5433** in a dedicated `C:\laragon\data\mason-postgres` cluster; its password is stored only in ignored `backend/.env`. Existing PostgreSQL on port 5432 is unchanged. The browser frontend is now **http://127.0.0.1:5173**; Laravel at port 8000 serves the API.

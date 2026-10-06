@@ -37,6 +37,14 @@ return [
 
     'mailers' => [
 
+        'gmail_api' => [
+            'transport' => 'gmail_api',
+            'client_id' => env('GMAIL_CLIENT_ID'),
+            'client_secret' => env('GMAIL_CLIENT_SECRET'),
+            'refresh_token' => env('GMAIL_REFRESH_TOKEN'),
+            'timeout' => (int) env('MAIL_TIMEOUT', 8),
+        ],
+
         'smtp' => [
             'transport' => 'smtp',
             'scheme' => env('MAIL_SCHEME', env('MAIL_ENCRYPTION') === 'ssl' ? 'smtps' : null),

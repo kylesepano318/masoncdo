@@ -14,6 +14,14 @@ use Illuminate\Http\Request;
 
 class ApiPublicController extends Controller
 {
+    public function session(Request $request)
+    {
+        $user = $request->user('web');
+
+        return response()->json(['user' => $user?->is_admin ? $user->only('id', 'name', 'email') : null])
+            ->header('Cache-Control', 'private, no-store');
+    }
+
     public function site()
     {
         $values = SiteSetting::allValues();
@@ -54,6 +62,6 @@ class ApiPublicController extends Controller
         unset($data['website']);
         $application = $service->submit($data);
 
-        return response()->json(['message' => 'Application submitted successfully.', 'reference_number' => $application->reference_number],201);
+        return response()->json(['message' => 'Application submitted successfully.', 'reference_number' => $application->reference_number], 201);
     }
 }

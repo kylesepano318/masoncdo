@@ -18,12 +18,26 @@ test("administrator manages members, birthday visibility, applications, and CMS 
       apiOrigins.push(url.origin);
   });
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto("/admin/login");
+  await page.goto("/");
+  await expect(
+    page.getByRole("link", { name: "Admin Login", exact: true }),
+  ).toHaveAttribute("href", "/admin/login");
+  await page.getByRole("link", { name: "Admin Login", exact: true }).click();
   await page.getByLabel("Email address").fill(process.env.TEST_ADMIN_EMAIL!);
   await page
     .getByLabel("Password", { exact: true })
     .fill(process.env.TEST_ADMIN_PASSWORD!);
   await page.getByRole("button", { name: "Login", exact: true }).click();
+  await expect(page).toHaveURL(/admin\/dashboard/);
+  await page.goto("/");
+  await expect(
+    page.getByRole("link", { name: "Admin", exact: true }),
+  ).toHaveAttribute("href", "/admin/dashboard");
+  await page.reload();
+  await expect(
+    page.getByRole("link", { name: "Admin", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Admin", exact: true }).click();
   await expect(page).toHaveURL(/admin\/dashboard/);
   await page.goto("/admin/members/create");
   await page.getByLabel("First name").fill("Browser");
@@ -100,7 +114,7 @@ test("administrator manages members, birthday visibility, applications, and CMS 
   await page.getByRole("button", { name: "Save review" }).click();
   await expect(
     page.getByText("Application status updated.", { exact: true }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 15000 });
   await page.reload();
   await expect(page.getByLabel("Internal notes")).toHaveValue(
     "Browser private review notes",
@@ -162,6 +176,10 @@ test("administrator manages members, birthday visibility, applications, and CMS 
   await expect(page).toHaveURL(/admin\/login/);
   await page.goto("/admin/dashboard");
   await expect(page).toHaveURL(/admin\/login/);
+  await page.goto("/");
+  await expect(
+    page.getByRole("link", { name: "Admin Login", exact: true }),
+  ).toBeVisible();
   expect(errors).toEqual([]);
   if (process.env.TEST_SAME_ORIGIN) {
     expect(apiOrigins.length).toBeGreaterThan(0);

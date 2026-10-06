@@ -43,6 +43,17 @@ class LodgeTest extends TestCase
         return $user;
     }
 
+    public function test_public_session_reports_only_the_current_administrator_and_is_not_cacheable(): void
+    {
+        $this->getJson('/api/public/session')->assertOk()->assertExactJson(['user' => null])
+            ->assertHeader('Cache-Control', 'no-store, private');
+        $member = User::factory()->create();
+        $this->actingAs($member)->getJson('/api/public/session')->assertOk()->assertExactJson(['user' => null]);
+        $admin = $this->admin();
+        $this->actingAs($admin)->getJson('/api/public/session')->assertOk()
+            ->assertExactJson(['user' => $admin->only('id', 'name', 'email')]);
+    }
+
     private function memberData(int $position = 4): array
     {
         return ['first_name' => 'Juan', 'last_name' => 'Example', 'membership_position_id' => MembershipPosition::where('rank', $position)->firstOrFail()->id, 'status' => 'active', 'is_public' => true, 'display_order' => 0];
@@ -242,6 +253,6 @@ class LodgeTest extends TestCase
         foreach (['/api/admin/dashboard', '/api/admin/members', '/api/admin/members/create', '/api/admin/applications', '/api/admin/celebrations', '/api/admin/affiliations', '/api/admin/media', '/api/admin/pages/'.Page::where('slug', 'home')->firstOrFail()->id, '/api/admin/settings/branding', '/api/admin/settings/theme', '/api/admin/settings/navigation', '/api/admin/settings/account'] as $url) {
             $this->getJson($url)->assertOk();
         } $this->putJson('/api/admin/settings/branding', ['name' => 'Golden Friendship', 'location' => 'CDO', 'emblem' => '/images/lodge-brethren.jpg'])->assertSuccessful();
-        $this->getJson('/api/public/site')->assertJsonPath('site.branding.emblem','/images/lodge-brethren.jpg');
+        $this->getJson('/api/public/site')->assertJsonPath('site.branding.emblem', '/images/lodge-brethren.jpg');
     }
 }

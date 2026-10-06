@@ -49,6 +49,8 @@ Axios uses credentials and obtains `/sanctum/csrf-cookie` before mutations. The 
 
 ## Provider-independent email
 
+For Gmail sending on Render Free, follow [Gmail API setup](gmail-api.md) and use `MAIL_MAILER=gmail_api` with backend-only OAuth credentials. Existing templates and notification settings work with this HTTPS transport. The SMTP configuration below remains an alternative.
+
 Configure these backend environment variables using any SMTP-compatible provider:
 
 ```dotenv

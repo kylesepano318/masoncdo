@@ -84,6 +84,11 @@ function App() {
           auth = { user: me.user };
           adminPages = me.pages;
           unread = me.unread;
+        } else {
+          const session = await authApi
+            .session()
+            .catch(() => ({ data: { user: null } }));
+          auth = { user: session.data.user };
         }
         let name = "public/Page",
           endpoint = "",

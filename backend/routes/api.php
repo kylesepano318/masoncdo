@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/health', fn () => response()->json(['status' => 'ok']));
 Route::get('/public/site', [ApiPublicController::class, 'site']);
+Route::get('/public/session', [ApiPublicController::class, 'session']);
 Route::get('/public/members', [ApiPublicController::class, 'members']);
 Route::get('/public/pages/{slug}', [ApiPublicController::class, 'page']);
 Route::post('/applications', [ApiPublicController::class, 'submit'])->middleware('throttle:5,1');
@@ -52,6 +53,6 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::get('/celebrations', [CelebrationController::class, 'index']);
     Route::post('/celebrations', [CelebrationController::class, 'save']);
     Route::put('/celebrations/{celebration}', [CelebrationController::class, 'save']);
-    Route::delete('/celebrations/{celebration}',[CelebrationController::class, 'destroy']);
-    Route::resource('members',MemberController::class)->except('show');
+    Route::delete('/celebrations/{celebration}', [CelebrationController::class, 'destroy']);
+    Route::resource('members', MemberController::class)->except('show');
 });

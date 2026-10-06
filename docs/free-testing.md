@@ -2,6 +2,8 @@
 
 No purchased domain is required with a Vercel reverse proxy. The browser uses only the Vercel origin for `/api/*` and `/sanctum/*`; Vercel forwards these requests to Render. Secure session cookies have no Domain attribute and belong to the Vercel host. Login stays cookie-based, with CSRF protection and no localStorage tokens.
 
+For real email delivery from Gmail on Render Free, use [the Gmail API guide](gmail-api.md) instead of the Mailtrap settings below. It supports both admin alerts and applicant reference confirmations through HTTPS, without SMTP ports or a purchased sending domain.
+
 Example URLs below are placeholders. Use the stable Vercel production project URL for testing, not a changing preview URL.
 
 ## 1. Accounts and repository
@@ -89,6 +91,27 @@ Open both `https://YOUR-SERVICE.onrender.com/api/health` and `https://YOUR-PROJE
 Use `https://YOUR-PROJECT.vercel.app/admin/login` and the bootstrap credentials. Refresh the dashboard to check the session persists. After the admin is created, remove LODGE_ADMIN_PASSWORD from Render. Test uploads, CMS preview/publish, a public application submission and its admin record, birthday privacy/current-year filtering, and logout. Redeploy Render and confirm records and Cloudinary images survive.
 
 For email, create a **Mailtrap Email Sandbox** inbox and copy its SMTP integration credentials using port 2525. Save the notification recipient under Admin → Notifications, then send a test email. Check Mailtrap's dashboard. Sandbox email is captured there and does not reach a real inbox. For real delivery, use a sending provider supporting port 2525 and its verified sender/domain. Render Free blocks SMTP ports 25, 465, and 587. No domain purchase is needed for sandbox testing.
+
+### Delivering a test email to your own real inbox
+
+Mailtrap's Demo sending domain supports delivery only to the email address registered to your Mailtrap account. This differs from Sandbox capture. In Mailtrap → Sending Setup, choose `demomailtrap.co`, Transactional, SMTP. Create or use a token with Admin permission for that domain. Set Render:
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_HOST=live.smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=api
+MAIL_PASSWORD=YOUR_DEMO_DOMAIN_SENDING_TOKEN
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=hello@demomailtrap.co
+MAIL_FROM_NAME=Golden Friendship Lodge
+```
+
+Use the sender from Mailtrap's demo integration example if it differs. Save and redeploy Render. In the website's Admin → Notifications, set the recipient to your Mailtrap account's registered email, enable Send email for new applications, save, then Send test email. The saved admin recipient takes precedence over APPLICATION_NOTIFICATION_EMAIL in Render. Emails from earlier sandbox tests will not be automatically sent through the live service.
+
+Applicant acknowledgment is disabled by default. Enable **Send an acknowledgment email to the applicant**, save, and submit a new test application. With the Demo domain, its applicant email must also equal your registered Mailtrap email. Sending to other notification or applicant addresses requires a verified sending domain. Merely creating an API token does not switch the application's SMTP host from sandbox to live.
+
+References: [Mailtrap SMTP integration](https://docs.mailtrap.io/email-api-smtp/setup/smtp-integration), [Mailtrap sending ports](https://mailtrap.io/blog/smtp-ports-25-465-587-used-for/), [Demo domain restrictions](https://docs.mailtrap.io/email-api-smtp/setup/sending-domain).
 
 Render Free sleeps after 15 minutes of inactivity. If the proxy times out during a cold start, open the Render health URL, wait for it to wake, and retry. Test actual hosted uploads for hosting request limits, especially near the app's 8 MB maximum.
 
