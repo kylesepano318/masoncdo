@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "destination": "https://masoncdo.onrender.com/api/:path*"
+    },
+    {
+      "source": "/sanctum/:path*",
+      "destination": "https://masoncdo.onrender.com/sanctum/:path*"
+    },
+    {
       "source": "/((?!assets/|images/|.*\\.[^/]+$).*)",
       "destination": "/index.html"
     }
