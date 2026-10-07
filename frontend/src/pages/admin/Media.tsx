@@ -18,9 +18,20 @@ function Details({ item }: { item: MediaItem }) {
       }}
     >
       <a href={item.path} target="_blank" rel="noopener noreferrer">
-        <img src={item.path} alt={item.alt_text} />
+        {item.mime_type === "application/pdf" ? (
+          "Open PDF document"
+        ) : (
+          <img src={item.path} alt={item.alt_text} loading="lazy" />
+        )}
       </a>
       <p>{item.original_name}</p>
+      <Field label="Public file URL">
+        <input
+          readOnly
+          value={item.path}
+          onFocus={(e) => e.currentTarget.select()}
+        />
+      </Field>
       <Field label="Alternative text">
         <input
           value={f.data.alt_text}
@@ -43,7 +54,7 @@ function Details({ item }: { item: MediaItem }) {
           onClick={() => {
             if (
               confirm(
-                "Delete this image? Images referenced by the website cannot be deleted.",
+                "Delete this file? Files referenced by the website cannot be deleted.",
               )
             )
               apiActions.delete(`/admin/media/${item.id}`);
@@ -74,14 +85,14 @@ export default function Media({ media }: { media: Paginated<MediaItem> }) {
           });
         }}
       >
-        <h2>Upload an image</h2>
+        <h2>Upload an image or PDF</h2>
         <Errors errors={f.errors} />
         <div className="form-grid">
-          <Field label="Image (PNG, JPG, WEBP · max 8 MB)">
+          <Field label="File (PNG, JPG, WEBP, PDF · max 8 MB)">
             <input
               type="file"
               required
-              accept="image/png,image/jpeg,image/webp"
+              accept="image/png,image/jpeg,image/webp,application/pdf"
               onChange={(e) => f.setData("file", e.target.files?.[0] || null)}
             />
           </Field>
@@ -100,7 +111,7 @@ export default function Media({ media }: { media: Paginated<MediaItem> }) {
           </Field>
         </div>
         <button className="admin-button" disabled={f.processing}>
-          {f.processing ? "Uploading…" : "Upload image"}
+          {f.processing ? "Uploading…" : "Upload file"}
         </button>
       </form>
       <form

@@ -1,9 +1,9 @@
 [
   [
     "hero",
-    "S:.I:.G:.L:.O:.",
-    "FEDERATION",
-    "<p>Universal Freemasonry Alliance of Masonic Alliances</p>",
+    "Golden Friendship",
+    "Masonic Lodge No. 40",
+    "<p>Cagayan de Oro City</p>",
     "/background.jpg",
     {
       "background": "#101726",
@@ -15,7 +15,8 @@
       "background_image": "/background.jpg",
       "background_position": "center top",
       "background_fit": "cover",
-      "alignment": "center"
+      "alignment": "center",
+      "lodge_hero": true
     }
   ],
   [

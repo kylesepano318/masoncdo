@@ -36,7 +36,12 @@ export function invalidateReads(path: string) {
       key.startsWith("/public/pages/") ||
       key === "/public/members" ||
       (path.startsWith("/admin/settings/") && key === "/public/site") ||
-      (["/admin/login", "/admin/logout", "/admin/password"].includes(path) &&
+      ([
+        "/admin/login",
+        "/admin/logout",
+        "/admin/password",
+        "/admin/account",
+      ].includes(path) &&
         (key === "/admin/me" || key === "/public/session")) ||
       ((path.startsWith("/admin/applications") ||
         path.startsWith("/admin/pages/")) &&

@@ -14,6 +14,8 @@ export interface PublicMember {
   position: Position;
 }
 export interface MediaItem {
+  mime_type?: string;
+  resource_type?: string;
   id: number;
   path: string;
   original_name: string;
@@ -28,6 +30,7 @@ export type SectionItem = {
   url?: string;
 };
 export type SectionSettings = {
+  lodge_hero?: boolean;
   layout?: "half" | "documents";
   display_mode?: "preview" | "all";
   eyebrow?: string;
@@ -105,7 +108,7 @@ export interface Shared {
   [key: string]: unknown;
   site: Record<string, Record<string, string>>;
   adminPages: { id: number; slug: string; name: string }[];
-  auth: { user: { id: number; name: string; email: string } | null };
+  auth: { user: { id: number; name: string; email: string; username?: string | null } | null };
   flash: { success?: string; reference?: string };
 }
 export interface PublicProps {

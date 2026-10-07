@@ -32,7 +32,7 @@ class ApiApplicationController extends Controller
     public function index(Request $r)
     {
         $data = $r->validate(['search' => 'nullable|string|max:255', 'status' => 'nullable|in:pending,under_review,approved,rejected', 'unread' => 'nullable|boolean', 'sort' => 'nullable|in:submitted_at,reference_number,last_name,status', 'direction' => 'nullable|in:asc,desc']);
-        $q = LodgeApplication::query()->when($data['status'] ?? null, fn ($q, $v) => $q->where('status', $v))->when($r->boolean('unread'), fn ($q) => $q->where('is_read_by_admin', false))->when($data['search'] ?? null, fn ($q, $v) => $q->where(fn ($q) => $q->where('reference_number', 'ilike', "%$v%")->orWhere('first_name', 'ilike', "%$v%")->orWhere('last_name', 'ilike', "%$v%")->orWhere('email', 'ilike', "%$v%")))->orderBy($data['sort'] ?? 'submitted_at', $data['direction'] ?? 'desc');
+        $q = LodgeApplication::query()->when($data['status'] ?? null, fn ($q, $v) => $q->where('status', $v))->when($r->boolean('unread'), fn ($q) => $q->where('is_read_by_admin', false))->when($data['search'] ?? null, fn ($q, $v) => $q->where(fn ($q) => $q->whereLike('reference_number', "%$v%")->orWhereLike('first_name', "%$v%")->orWhereLike('last_name', "%$v%")->orWhereLike('email', "%$v%")))->orderBy($data['sort'] ?? 'submitted_at', $data['direction'] ?? 'desc');
         $p = $q->paginate(20)->withQueryString();
         $p->setCollection(collect(ApplicationResource::collection($p->getCollection())->resolve()));
 

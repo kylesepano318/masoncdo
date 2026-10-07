@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\DeliverApplicationEmail;
 use App\Mail\ApplicationAcknowledgment;
 use App\Mail\NewMembershipApplication;
 use App\Models\LodgeApplication;
@@ -19,6 +20,16 @@ class ApplicationNotificationService
     public function deliver(LodgeApplication $application): void
     {
         $settings = $this->settings();
+        if (config('queue.default') !== 'sync') {
+            if (($settings['send_application_notification_email'] ?? true) !== false) {
+                DeliverApplicationEmail::dispatch($application->id, 'admin');
+            }
+            if ($settings['send_applicant_confirmation_email'] ?? false) {
+                DeliverApplicationEmail::dispatch($application->id, 'applicant');
+            }
+
+            return;
+        }
         $this->send($application, false, $settings);
         $this->acknowledge($application, $settings);
     }
@@ -52,15 +63,21 @@ class ApplicationNotificationService
         }
     }
 
-    public function acknowledge(LodgeApplication $application, ?array $settings = null): void
+    public function acknowledge(LodgeApplication $application, ?array $settings = null): bool
     {
         if (! (($settings ?? $this->settings())['send_applicant_confirmation_email'] ?? false)) {
-            return;
+            return true;
         }
         try {
             Mail::to($application->email)->send(new ApplicationAcknowledgment($application->reference_number));
+            $application->forceFill(['acknowledgment_email_sent_at' => now(), 'acknowledgment_email_failed_at' => null])->save();
+
+            return true;
         } catch (\Throwable $e) {
+            $application->forceFill(['acknowledgment_email_failed_at' => now()])->save();
             Log::warning('Applicant acknowledgment delivery failed', ['application_reference' => $application->reference_number, 'exception_type' => get_class($e)]);
+
+            return false;
         }
     }
 }

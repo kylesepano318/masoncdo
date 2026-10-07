@@ -21,10 +21,16 @@ class ApplicationService
             DB::table('application_sequences')->where('year', $year)->update(['value' => $value]);
             $record = LodgeApplication::create($data + ['reference_number' => sprintf('APP-%d-%06d', $year, $value), 'consented_at' => now(), 'submitted_at' => now(), 'certification_accepted_at' => now(), 'privacy_consent_accepted_at' => now(), 'is_read_by_admin' => false]);
             Audit::log('Application Submitted', ['application_id' => $record->id]);
+            // Database queue writes commit atomically with the application, avoiding lost notifications.
+            if (config('queue.default') === 'database') {
+                app(ApplicationNotificationService::class)->deliver($record);
+            }
 
             return $record;
         });
-        app(ApplicationNotificationService::class)->deliver($record);
+        if (config('queue.default') !== 'database') {
+            app(ApplicationNotificationService::class)->deliver($record);
+        }
 
         return $record;
     }

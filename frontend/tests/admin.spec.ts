@@ -410,6 +410,68 @@ test("administrator manages members, birthday visibility, applications, and CMS 
   ).toBeVisible();
   expect(testEmailRequests).toBe(1);
   await page.unroute("**/api/admin/settings/notifications/test-email");
+  await page
+    .getByRole("link", { name: "Login credentials", exact: true })
+    .click();
+  await expect(page.getByLabel("Login email address")).toHaveValue(
+    process.env.TEST_ADMIN_EMAIL!,
+  );
+  const updatedEmail = "updated-browser-admin@example.test";
+  const updatedPassword = process.env.TEST_ADMIN_PASSWORD! + "New";
+  await page.getByLabel("Login email address").fill(updatedEmail);
+  await page
+    .getByLabel("Current password", { exact: true })
+    .fill(process.env.TEST_ADMIN_PASSWORD!);
+  await page
+    .getByLabel("New password (optional)", { exact: true })
+    .fill(updatedPassword);
+  await page
+    .getByLabel("Confirm new password", { exact: true })
+    .fill(updatedPassword);
+  await page
+    .getByRole("button", { name: "Save login credentials", exact: true })
+    .click();
+  await expect(
+    page.getByText("Login credentials updated.", { exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel("Login email address")).toHaveValue(
+    updatedEmail,
+  );
+  await page.getByRole("button", { name: "Logout" }).click();
+  await expect(page).toHaveURL(/admin\/login/);
+  await expect(
+    page.getByRole("heading", { name: "Administrator login", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator("div[aria-busy]").first()).toHaveAttribute(
+    "aria-busy",
+    "false",
+  );
+  await page.getByLabel("Email address").fill(updatedEmail);
+  await page.getByLabel("Password", { exact: true }).fill(updatedPassword);
+  await page.getByRole("button", { name: "Login", exact: true }).click();
+  await expect(page).toHaveURL(/admin\/dashboard/);
+  // Restore the isolated account so the following performance checks can log in.
+  await page.goto("/admin/settings/account");
+  await page
+    .getByLabel("Login email address")
+    .fill(process.env.TEST_ADMIN_EMAIL!);
+  await page
+    .getByLabel("Current password", { exact: true })
+    .fill(updatedPassword);
+  await page
+    .getByLabel("New password (optional)", { exact: true })
+    .fill(process.env.TEST_ADMIN_PASSWORD!);
+  await page
+    .getByLabel("Confirm new password", { exact: true })
+    .fill(process.env.TEST_ADMIN_PASSWORD!);
+  await page
+    .getByRole("button", { name: "Save login credentials", exact: true })
+    .click();
+  await expect(
+    page.getByText("Login credentials updated.", { exact: true }),
+  ).toBeVisible();
+
   await page.getByRole("button", { name: "Logout" }).click();
   await expect(page).toHaveURL(/admin\/login/);
   await page.goto("/admin/dashboard");
@@ -424,5 +486,23 @@ test("administrator manages members, birthday visibility, applications, and CMS 
     expect([...new Set(apiOrigins)]).toEqual([
       new URL(process.env.TEST_BASE_URL!).origin,
     ]);
+  }
+});
+
+
+test("both seeded administrators can log in by username", async ({ page }) => {
+  test.skip(!process.env.TEST_ADMIN_PASSWORD, "Use scripts/verify-admin.ps1");
+  for (const username of ["browser-master", "browser-warden"]) {
+    await page.goto("/admin/login");
+    await expect(page.locator("div[aria-busy]").first()).toHaveAttribute("aria-busy", "false");
+    await page.getByLabel("Email address or username").fill(username);
+    await page.getByLabel("Password", { exact: true }).fill(process.env.TEST_ADMIN_PASSWORD!);
+    await page.getByRole("button", { name: "Login", exact: true }).click();
+    await expect(page).toHaveURL(/admin\/dashboard/);
+    const response = await page.request.get("/api/admin/me", { headers: { Origin: new URL(page.url()).origin, Accept: "application/json" } });
+    expect(response.status()).toBe(200);
+    expect((await response.json()).user.username).toBe(username);
+    await page.getByRole("button", { name: "Logout", exact: true }).click();
+    await expect(page).toHaveURL(/admin\/login/);
   }
 });

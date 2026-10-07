@@ -11,7 +11,7 @@ export default function HeroSection({ section }: { section: Section }) {
   const bg = s.style === "background";
   return (
     <section
-      className={`hero-section ${section.title?.includes("S:.") ? "federation-hero" : ""} ${bg ? "with-background" : ""} ${s.background_fit === "contain" ? "image-contained" : ""}`}
+      className={`hero-section ${s.lodge_hero || section.title?.includes("S:.") ? "federation-hero" : ""} ${bg ? "with-background" : ""} ${s.background_fit === "contain" ? "image-contained" : ""}`}
       style={{
         background: s.background || "var(--color-secondary)",
         color: s.text_color || "var(--color-background)",

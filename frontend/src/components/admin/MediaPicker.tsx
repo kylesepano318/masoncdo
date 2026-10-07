@@ -32,7 +32,7 @@ export default function MediaPicker({
     const timer = setTimeout(() => {
       void http
         .get("/admin/media", {
-          params: { search, page },
+          params: { search, page, type: "image" },
           signal: controller.signal,
         })
         .then(({ data }) => {

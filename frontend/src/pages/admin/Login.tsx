@@ -16,15 +16,16 @@ export default function Login() {
           onSubmit={(e) => {
             e.preventDefault();
             f.post("/admin/login", {
+              refresh: false,
               onSuccess: () => navigate("/admin/dashboard"),
               onFinish: () => f.reset("password"),
             });
           }}
         >
           <Errors errors={f.errors} />
-          <Field label="Email address">
+          <Field label="Email address or username">
             <input
-              type="email"
+              type="text"
               autoComplete="username"
               required
               value={f.data.email}

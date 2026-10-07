@@ -7,6 +7,15 @@ test("homepage fits mobile, tablet, and desktop widths", async ({
   for (const width of [360, 390, 768, 1366, 1920]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
+    await expect(page.locator(".hero-content h1")).toHaveText(
+      "Golden Friendship",
+    );
+    await expect(page.locator(".hero-subtitle")).toHaveText(
+      "Masonic Lodge No. 40",
+    );
+    await expect(page.locator(".hero-content .rich-content")).toHaveText(
+      "Cagayan de Oro City",
+    );
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,

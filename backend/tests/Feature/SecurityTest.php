@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Media;
 use App\Models\Page;
 use App\Models\User;
-use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -32,15 +31,15 @@ class SecurityTest extends TestCase
         Http::fake(['*/image/upload' => Http::response(['public_id' => 'lodge/test-image', 'secure_url' => 'https://res.cloudinary.com/test/image/upload/test-image.jpg', 'resource_type' => 'image', 'width' => 100, 'height' => 100, 'bytes' => 100]), '*/image/destroy' => Http::response(['result' => 'ok'])]);
     }
 
-    public function test_database_allows_only_one_administrator(): void
+    public function test_database_allows_multiple_administrators(): void
     {
         $first = User::factory()->create();
         $first->is_admin = true;
         $first->save();
         $second = User::factory()->create();
         $second->is_admin = true;
-        $this->expectException(QueryException::class);
         $second->save();
+        $this->assertSame(2, User::where('is_admin', true)->count());
     }
 
     public function test_video_sections_require_a_supported_youtube_link(): void

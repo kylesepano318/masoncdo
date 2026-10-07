@@ -1,0 +1,91 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'deployment/hostinger/**'
+      - 'scripts/build-hostinger.sh'
+      - 'scripts/deploy-hostinger.sh'
+      - '.github/workflows/deploy-hostinger.yml'
+  workflow_dispatch:
+    inputs:
+      initialize:
+        description: 'First installation: generate a missing app key and seed initial website/admin accounts'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hostinger-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql, mbstring, intl, gd, zip
+          tools: composer:v2
+          coverage: none
+      - name: Build and check frontend
+        working-directory: frontend
+        env:
+          VITE_API_BASE_URL: '/'
+        run: |
+          npm ci
+          npm run typecheck
+          npm run build
+      - name: Build production package
+        run: bash scripts/build-hostinger.sh "$RUNNER_TEMP/hostinger-package"
+      - name: Configure SSH
+        env:
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+          SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+          SSH_KEY: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ secrets.HOSTINGER_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          [[ "$SSH_HOST" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]*$ ]] || { echo 'Invalid SSH host'; exit 1; }
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]] && ((10#$SSH_PORT >= 1 && 10#$SSH_PORT <= 65535)) || { echo 'Invalid SSH port'; exit 1; }
+          [[ "$SSH_USER" =~ ^[a-zA-Z0-9][a-zA-Z0-9_-]*$ ]] || { echo 'Invalid SSH user'; exit 1; }
+          [[ -n "$SSH_KEY" && -n "$KNOWN_HOSTS" ]] || { echo 'SSH key and verified known hosts are required'; exit 1; }
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_KEY" | tr -d '\r' > "$HOME/.ssh/hostinger_deploy"
+          printf '%s\n' "$KNOWN_HOSTS" | tr -d '\r' > "$HOME/.ssh/hostinger_known_hosts"
+          chmod 600 "$HOME/.ssh/hostinger_deploy" "$HOME/.ssh/hostinger_known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host hostinger
+            HostName $SSH_HOST
+            Port $SSH_PORT
+            User $SSH_USER
+            IdentityFile $HOME/.ssh/hostinger_deploy
+            UserKnownHostsFile $HOME/.ssh/hostinger_known_hosts
+            StrictHostKeyChecking yes
+            IdentitiesOnly yes
+            BatchMode yes
+            ConnectTimeout 20
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+      - name: Deploy application
+        env:
+          HOSTINGER_DEPLOY_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.initialize && 'initialize' || 'update' }}
+          HOSTINGER_SITE_PATH: ${{ secrets.HOSTINGER_SITE_PATH }}
+          HOSTINGER_PHP_BIN: ${{ vars.HOSTINGER_PHP_BIN }}
+        run: bash scripts/deploy-hostinger.sh "$RUNNER_TEMP/hostinger-package"

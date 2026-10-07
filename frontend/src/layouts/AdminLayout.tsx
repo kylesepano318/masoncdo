@@ -48,7 +48,7 @@ const groups = [
       ["Theme", "/admin/settings/theme", Palette],
       ["Navigation", "/admin/settings/navigation", Settings],
       ["Notifications", "/admin/settings/notifications", Inbox],
-      ["Change password", "/admin/settings/account", Settings],
+      ["Login credentials", "/admin/settings/account", Settings],
     ],
   },
 ] as const;

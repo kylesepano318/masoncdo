@@ -51,7 +51,7 @@ class LodgeTest extends TestCase
         $this->actingAs($member)->getJson('/api/public/session')->assertOk()->assertExactJson(['user' => null]);
         $admin = $this->admin();
         $this->actingAs($admin)->getJson('/api/public/session')->assertOk()
-            ->assertExactJson(['user' => $admin->only('id', 'name', 'email')]);
+            ->assertExactJson(['user' => $admin->only('id', 'name', 'email', 'username')]);
     }
 
     private function memberData(int $position = 4): array
@@ -186,7 +186,7 @@ class LodgeTest extends TestCase
         $this->putJson('/api/admin/sections/'.$section->id, ['section_type' => 'hero', 'title' => 'Draft heading', 'body' => '<p>Hello</p><script>alert(1)</script><a href="javascript:alert(1)">Unsafe</a>', 'is_visible' => false])->assertSuccessful();
         $this->assertStringNotContainsString('<script', $section->fresh()->body);
         $this->assertStringNotContainsString('javascript:', $section->fresh()->body);
-        $this->getJson('/api/public/pages/home')->assertJsonPath('sections.0.title', 'S:.I:.G:.L:.O:.');
+        $this->getJson('/api/public/pages/home')->assertJsonPath('sections.0.title', 'Golden Friendship');
         $this->getJson('/api/admin/preview/home')->assertJsonPath('sections.0.section_type', 'lodge_feature');
         $ids = $page->sections()->pluck('id')->reverse()->values()->all();
         $this->postJson('/api/admin/pages/'.$page->id.'/reorder', ['ids' => $ids])->assertSuccessful();

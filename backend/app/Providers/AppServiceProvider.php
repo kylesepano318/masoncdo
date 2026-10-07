@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Mail\Transport\GmailApiTransport;
+use App\Mail\Transport\MailtrapApiTransport;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -24,6 +25,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Mail::extend('mailtrap_api', fn (array $config) => new MailtrapApiTransport(
+            (string) ($config['token'] ?? ''), max(1, min(30, (int) ($config['timeout'] ?? 15))),
+        ));
         DB::listen(function (QueryExecuted $query) {
             $metrics = $this->app['request']->attributes->get('lodge.query_metrics');
             if ($metrics) {

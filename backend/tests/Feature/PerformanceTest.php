@@ -35,7 +35,7 @@ class PerformanceTest extends TestCase
         $this->assertMatchesRegularExpression('/^app;dur=[\d.]+, db;dur=[\d.]+, queries;desc="\d+"$/', $response->headers->get('Server-Timing'));
         $queries = collect(DB::getQueryLog())->pluck('query')->implode('\n');
         foreach (['members', 'membership_positions', 'affiliations', 'celebrations'] as $table) {
-            $this->assertStringNotContainsString('from "'.$table.'"', $queries);
+            $this->assertStringNotContainsString('from '.DB::connection()->getQueryGrammar()->wrapTable($table), $queries);
         }
         DB::disableQueryLog();
     }
@@ -45,11 +45,11 @@ class PerformanceTest extends TestCase
         $this->admin();
         DB::enableQueryLog();
         $this->getJson('/api/admin/applications/counts')->assertOk()->assertJson(['pending' => 0, 'unread' => 0, 'this_month' => 0]);
-        $this->assertCount(1, collect(DB::getQueryLog())->filter(fn ($q) => str_contains($q['query'], 'from "applications"')));
+        $this->assertCount(1, collect(DB::getQueryLog())->filter(fn ($q) => str_contains($q['query'], 'from '.DB::connection()->getQueryGrammar()->wrapTable('applications'))));
         DB::flushQueryLog();
         $this->getJson('/api/admin/dashboard')->assertOk();
-        $this->assertCount(1, collect(DB::getQueryLog())->filter(fn ($q) => str_contains($q['query'], 'from "members"')));
-        $this->assertCount(2, collect(DB::getQueryLog())->filter(fn ($q) => str_contains($q['query'], 'from "applications"')));
+        $this->assertCount(1, collect(DB::getQueryLog())->filter(fn ($q) => str_contains($q['query'], 'from '.DB::connection()->getQueryGrammar()->wrapTable('members'))));
+        $this->assertCount(2, collect(DB::getQueryLog())->filter(fn ($q) => str_contains($q['query'], 'from '.DB::connection()->getQueryGrammar()->wrapTable('applications'))));
         DB::disableQueryLog();
     }
 

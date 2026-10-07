@@ -228,7 +228,7 @@ async function action(method: string, path: string, data?: unknown) {
     const response = await mutation(method, path, data);
     notice(response.data.message || "Changes saved.");
     if (path === "/admin/logout") navigate("/admin/login");
-    refresh();
+    else refresh();
   } catch (e) {
     notice(Object.values(errorsOf(e)).join(" "));
   } finally {

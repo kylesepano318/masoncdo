@@ -4,6 +4,7 @@ use App\Models\Page;
 use App\Models\User;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Password;
 
@@ -22,7 +23,7 @@ Artisan::command('lodge:homepage', function () {
 
 Artisan::command('lodge:admin {email?} {--from-env : Initialize using LODGE_ADMIN_EMAIL and LODGE_ADMIN_PASSWORD}', function () {
     if (User::where('is_admin', true)->exists()) {
-        $this->info('An administrator already exists. Use the account password settings.');
+        $this->info('Administrator accounts already exist. Use Login credentials or AdministratorSeeder.');
 
         return $this->option('from-env') ? 0 : 1;
     }
@@ -38,8 +39,32 @@ Artisan::command('lodge:admin {email?} {--from-env : Initialize using LODGE_ADMI
     $user->is_admin = true;
     $user->save();
     $this->info('Administrator created.');
-})->purpose('Securely create the single lodge administrator');
+})->purpose('Securely bootstrap an initial lodge administrator');
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+// Shared hosting runs this bounded worker from cron instead of a persistent process.
+Artisan::command('lodge:mail-queue', function () {
+    if (config('queue.default') !== 'database') {
+        $this->error('Set QUEUE_CONNECTION=database before running the mail queue.');
+
+        return 1;
+    }
+    $lock = Cache::lock('lodge-mail-queue', 300);
+    if (! $lock->get()) {
+        $this->info('An earlier mail queue run is still active.');
+
+        return 0;
+    }
+    try {
+        return $this->call('queue:work', [
+            'connection' => 'database', '--stop-when-empty' => true,
+            '--max-time' => 45, '--max-jobs' => 20, '--tries' => 5,
+            '--timeout' => 45, '--sleep' => 0, '--memory' => 128,
+        ]);
+    } finally {
+        $lock->release();
+    }
+})->purpose('Process a bounded batch of queued emails; safe for once-per-minute cron');

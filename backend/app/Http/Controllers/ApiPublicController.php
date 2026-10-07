@@ -18,7 +18,7 @@ class ApiPublicController extends Controller
     {
         $user = $request->user('web');
 
-        return response()->json(['user' => $user?->is_admin ? $user->only('id', 'name', 'email') : null])
+        return response()->json(['user' => $user?->is_admin ? $user->only('id', 'name', 'email', 'username') : null])
             ->header('Cache-Control', 'private, no-store');
     }
 

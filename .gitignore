@@ -20,3 +20,14 @@
 /frontend/.env.production
 /frontend/dist/
 /backend/public/build/
+/backend/public/index.html
+/backend/public/assets/
+/backend/public/images/
+/backend/public/background.jpg
+/backend/public/golden-friendship-lodge-no-40.jpg
+/backend/public/golden-friendship-lodge-no-40.png
+/backend/public/lodge-brethren.jpg
+/backend/public/lodge-ceremony.jpg
+
+/deployment/hostinger/.env
+/backups/

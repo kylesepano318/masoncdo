@@ -25,6 +25,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::post('/membership-positions', [MembershipPositionController::class, 'store']);
     Route::get('/me', [ApiAuthController::class, 'me']);
     Route::post('/logout', [ApiAuthController::class, 'logout']);
+    Route::put('/account', [ApiAuthController::class, 'account'])->middleware('throttle:5,1');
     Route::put('/password', [ApiAuthController::class, 'password']);
     Route::get('/dashboard', [ApiApplicationController::class, 'dashboard']);
     Route::get('/applications/counts', [ApiApplicationController::class, 'counts']);

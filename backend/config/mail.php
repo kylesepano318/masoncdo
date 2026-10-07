@@ -37,6 +37,12 @@ return [
 
     'mailers' => [
 
+        'mailtrap_api' => [
+            'transport' => 'mailtrap_api',
+            'token' => env('MAILTRAP_API_TOKEN'),
+            'timeout' => (int) env('MAIL_TIMEOUT', 15),
+        ],
+
         'gmail_api' => [
             'transport' => 'gmail_api',
             'client_id' => env('GMAIL_CLIENT_ID'),

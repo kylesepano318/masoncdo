@@ -1,8 +1,11 @@
 **/node_modules
 **/vendor
 **/.env
+**/.env.*
+!**/.env.example
 **/test-results
 **/test-results-admin
+**/test-results-public
 **/playwright-report
 backend/public/hot
 backend/public/storage
@@ -14,6 +17,16 @@ backend/storage/app/public/*
 .local
 
 backend/public/build
+backend/public/index.html
+backend/public/assets
+backend/public/images
+backend/public/background.jpg
+backend/public/golden-friendship-lodge-no-40.jpg
+backend/public/golden-friendship-lodge-no-40.png
+backend/public/lodge-brethren.jpg
+backend/public/lodge-ceremony.jpg
 backend/bootstrap/cache/*.php
 backend/storage/framework/cache/*
 frontend/dist
+
+backups

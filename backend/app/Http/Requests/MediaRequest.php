@@ -13,6 +13,8 @@ class MediaRequest extends FormRequest
 
     public function rules(): array
     {
-        return ['file' => 'required|file|image|mimes:jpg,jpeg,png,webp|max:8192', 'alt_text' => 'required|string|max:255', 'caption' => 'nullable|string|max:2000'];
+        $types = config('lodge.media_disk') === 'cloudinary' ? 'jpg,jpeg,png,webp' : 'jpg,jpeg,png,webp,pdf';
+
+        return ['file' => 'required|file|mimes:'.$types.'|max:8192', 'alt_text' => 'required|string|max:255', 'caption' => 'nullable|string|max:2000'];
     }
 }

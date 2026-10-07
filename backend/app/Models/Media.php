@@ -8,7 +8,7 @@ class Media extends Model
 {
     public static function pickerItems()
     {
-        return static::latest('id')->limit(24)->get(['id', 'path', 'original_name', 'alt_text', 'caption']);
+        return static::where('resource_type', 'image')->latest('id')->limit(24)->get(['id', 'path', 'original_name', 'alt_text', 'caption']);
     }
 
     protected $table = 'media';
