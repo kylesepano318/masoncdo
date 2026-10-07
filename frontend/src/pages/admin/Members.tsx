@@ -106,7 +106,7 @@ export default function Members({
                   <button
                     className="danger-link"
                     onClick={() => {
-                      if (confirm("Delete this member permanently?"))
+                      if (confirm(`Permanently delete ${m.first_name} ${m.last_name}? This cannot be undone. Related celebrations will remain but will no longer be linked to this member.`))
                         apiActions.delete(`/admin/members/${m.id}`);
                     }}
                   >

@@ -220,6 +220,7 @@ export function useApiForm<T extends Record<string, unknown>>(initial: T) {
     post: (path: string, options?: Options) => send("post", path, options),
     put: (path: string, options?: Options) => send("put", path, options),
     patch: (path: string, options?: Options) => send("patch", path, options),
+    delete: (path: string, options?: Options) => send("delete", path, options),
   };
 }
 async function action(method: string, path: string, data?: unknown) {

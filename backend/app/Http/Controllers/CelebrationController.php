@@ -39,6 +39,6 @@ class CelebrationController extends Controller
         $celebration->delete();
         Audit::log('Celebration Removed');
 
-        return response()->json(['message' => 'Changes saved.']);
+        return response()->json(['message' => 'Celebration deleted.']);
     }
 }

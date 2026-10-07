@@ -55,7 +55,7 @@ function Editor({
     >
       <div className="editor-title">
         <h2>{event ? "Edit celebration" : "Add celebration"}</h2>
-        <button type="button" onClick={onClose}>
+        <button type="button" disabled={f.processing} onClick={onClose}>
           Close ×
         </button>
       </div>
@@ -202,9 +202,30 @@ function Editor({
         of this year’s birthday celebration; the member’s birth year is not
         needed.
       </p>
-      <button className="admin-button" disabled={f.processing}>
-        {f.processing ? "Saving…" : "Save celebration"}
-      </button>
+      <div className="admin-actions">
+        <button className="admin-button" disabled={f.processing}>
+          {f.processing ? "Please wait…" : "Save celebration"}
+        </button>
+        {event && (
+          <button
+            type="button"
+            className="danger-link"
+            disabled={f.processing}
+            onClick={() => {
+              if (
+                confirm(
+                  `Permanently delete "${event.title}"? This cannot be undone.`,
+                )
+              )
+                f.delete(`/admin/celebrations/${event.id}`, {
+                  onSuccess: onClose,
+                });
+            }}
+          >
+            {f.processing ? "Please wait…" : "Delete celebration permanently"}
+          </button>
+        )}
+      </div>
     </form>
   );
 }
@@ -298,7 +319,7 @@ export default function Celebrations({
                   <button
                     className="danger-link"
                     onClick={() => {
-                      if (confirm("Delete this celebration?"))
+                      if (confirm(`Permanently delete "${c.title}"? This cannot be undone.`))
                         apiActions.delete(`/admin/celebrations/${c.id}`);
                     }}
                   >

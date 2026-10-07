@@ -143,9 +143,31 @@ export default function MemberEdit({
             />
           </div>
         )}
-        <button className="admin-button" disabled={f.processing}>
-          {f.processing ? "Saving…" : "Save member"}
-        </button>
+        <div className="admin-actions">
+          <button className="admin-button" disabled={f.processing}>
+            {f.processing ? "Please wait…" : "Save member"}
+          </button>
+          {member && (
+            <button
+              type="button"
+              className="danger-link"
+              disabled={f.processing}
+              onClick={() => {
+                if (
+                  confirm(
+                    `Permanently delete ${member.first_name} ${member.last_name}? This cannot be undone. Related celebrations will remain but will no longer be linked to this member.`,
+                  )
+                )
+                  f.delete(`/admin/members/${member.id}`, {
+                    refresh: false,
+                    onSuccess: () => navigate("/admin/members"),
+                  });
+              }}
+            >
+              {f.processing ? "Please wait…" : "Delete member permanently"}
+            </button>
+          )}
+        </div>
       </form>
     </AdminLayout>
   );
