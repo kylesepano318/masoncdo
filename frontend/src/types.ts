@@ -108,7 +108,15 @@ export interface Shared {
   [key: string]: unknown;
   site: Record<string, Record<string, string>>;
   adminPages: { id: number; slug: string; name: string }[];
-  auth: { user: { id: number; name: string; email: string; username?: string | null } | null };
+  auth: {
+    user: {
+      id: number;
+      name: string;
+      email: string;
+      username?: string | null;
+      is_superadmin?: boolean;
+    } | null;
+  };
   flash: { success?: string; reference?: string };
 }
 export interface PublicProps {

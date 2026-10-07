@@ -37,6 +37,7 @@ class AdministratorSeeder extends Seeder
                 }
                 $user = new User(['name' => $account['username'], 'username' => $account['username'], 'email' => $account['email'], 'password' => $account['password']]);
                 $user->is_admin = true;
+                $user->is_superadmin = true;
                 $user->save();
             }
         });

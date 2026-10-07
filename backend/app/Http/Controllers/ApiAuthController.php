@@ -30,7 +30,7 @@ class ApiAuthController extends Controller
 
     public function me(Request $r)
     {
-        return response()->json(['user' => $r->user()->only('id', 'name', 'email', 'username'), 'pages' => Page::all(['id', 'slug', 'name']), 'unread' => LodgeApplication::where('is_read_by_admin', false)->count()]);
+        return response()->json(['user' => $r->user()->only('id', 'name', 'email', 'username', 'is_superadmin'), 'pages' => Page::all(['id', 'slug', 'name']), 'unread' => LodgeApplication::where('is_read_by_admin', false)->count()]);
     }
 
     public function logout(Request $r)

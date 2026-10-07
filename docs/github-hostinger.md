@@ -65,6 +65,12 @@ Then check the homepage, admin login, a picture/PDF URL, and a test application.
 
 ## What an update preserves
 
+### Administrator management
+
+The role migration upgrades the original `worshipfulmasterRJMahilum` and `milzan` accounts to superadmins, matched by their original username or seeded email. Password hashes are preserved. New initial seed accounts are also superadmins; ordinary updates do not rerun the seeder. The role is stored on the account and remains when login credentials change.
+
+After deployment, log in with either superadmin and open **Administrators** in the sidebar to add regular admins with a name, unique username, email, and confirmed password. Only superadmins can list, add, or delete administrator accounts. Superadmin accounts cannot be deleted from this page, and new admins cannot be granted the superadmin role through the API. Regular admins keep the existing lodge management features and their own credential editor. Deleting a regular admin removes database sessions and prevents future login. Share initial credentials privately; account creation does not send them by email.
+
 The rsync rules exclude/protect `lodge/.env`, all `lodge/storage` data, `lodge/bootstrap/cache`, and all uploaded `public_html/storage` files. Hosting-managed `.well-known`, `cgi-bin`, `.user.ini` and `php.ini` are protected too. The storage `.htaccess` is updated separately. `--delete` removes obsolete application/build files only in the validated application/public directories; excluded persistent data is protected, and `--delete-excluded` is never used.
 
 The database is migrated normally and never reset. Only the explicit First installation run seeds initial data and generates a missing APP_KEY; successful initialization is recorded and repeated initialization is refused. Ordinary updates preserve APP_KEY and do not seed. Deployments are serialized, and the website enters maintenance mode before files change. The deployment obtains the mail cron lock and waits up to 90 seconds for an active email batch to finish; cron skips during the transfer. It discovers packages, clears/rebuilds generated caches, applies migrations, releases the lock and leaves maintenance only after successful completion.

@@ -120,25 +120,27 @@ function App() {
           name =
             path === "/admin/dashboard"
               ? "admin/Dashboard"
-              : path === "/admin/members"
-                ? "admin/Members"
-                : path.includes("/members/")
-                  ? "admin/MemberEdit"
-                  : path === "/admin/applications"
-                    ? "admin/Applications"
-                    : path.includes("/applications/")
-                      ? "admin/ApplicationDetail"
-                      : path.includes("/pages/")
-                        ? "admin/PageEditor"
-                        : path === "/admin/media"
-                          ? "admin/Media"
-                          : path === "/admin/affiliations"
-                            ? "admin/Affiliations"
-                            : path === "/admin/celebrations"
-                              ? "admin/Celebrations"
-                              : path.includes("/settings/")
-                                ? "admin/Settings"
-                                : "";
+              : path === "/admin/administrators"
+                ? "admin/Administrators"
+                : path === "/admin/members"
+                  ? "admin/Members"
+                  : path.includes("/members/")
+                    ? "admin/MemberEdit"
+                    : path === "/admin/applications"
+                      ? "admin/Applications"
+                      : path.includes("/applications/")
+                        ? "admin/ApplicationDetail"
+                        : path.includes("/pages/")
+                          ? "admin/PageEditor"
+                          : path === "/admin/media"
+                            ? "admin/Media"
+                            : path === "/admin/affiliations"
+                              ? "admin/Affiliations"
+                              : path === "/admin/celebrations"
+                                ? "admin/Celebrations"
+                                : path.includes("/settings/")
+                                  ? "admin/Settings"
+                                  : "";
         } else {
           const slug = path === "/" ? "home" : path.slice(1);
           endpoint = "/public/pages/" + slug;

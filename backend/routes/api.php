@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdministratorController;
 use App\Http\Controllers\ApiApplicationController;
 use App\Http\Controllers\ApiAuthController;
 use App\Http\Controllers\ApiPublicController;
@@ -20,6 +21,9 @@ Route::get('/public/pages/{slug}', [ApiPublicController::class, 'page']);
 Route::post('/applications', [ApiPublicController::class, 'submit'])->middleware('throttle:5,1');
 Route::post('/admin/login', [ApiAuthController::class, 'login'])->middleware('throttle:5,1');
 Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::get('/administrators', [AdministratorController::class, 'index']);
+    Route::post('/administrators', [AdministratorController::class, 'store'])->middleware('throttle:10,1');
+    Route::delete('/administrators/{administrator}', [AdministratorController::class, 'destroy']);
     Route::post('/celebration-types', [CelebrationTypeController::class, 'store']);
     Route::delete('/celebration-types/{celebrationType}', [CelebrationTypeController::class, 'destroy']);
     Route::post('/membership-positions', [MembershipPositionController::class, 'store']);

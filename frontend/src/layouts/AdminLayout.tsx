@@ -49,6 +49,7 @@ const groups = [
       ["Navigation", "/admin/settings/navigation", Settings],
       ["Notifications", "/admin/settings/notifications", Inbox],
       ["Login credentials", "/admin/settings/account", Settings],
+      ["Administrators", "/admin/administrators", Users],
     ],
   },
 ] as const;
@@ -76,37 +77,44 @@ export default function AdminLayout({
         {groups.map((g) => (
           <div className="sidebar-group" key={g.title}>
             <p>{g.title}</p>
-            {g.links.map(([label, url, Icon]) => (
-              <Link
-                href={
-                  url.startsWith("/admin/page/")
-                    ? `/admin/pages/${page.props.adminPages.find((p) => p.slug === url.split("/").pop())?.id}`
-                    : url
-                }
-                key={label}
-                className={
-                  (
+            {g.links
+              .filter(
+                ([, url]) =>
+                  url !== "/admin/administrators" ||
+                  page.props.auth.user?.is_superadmin,
+              )
+              .map(([label, url, Icon]) => (
+                <Link
+                  href={
                     url.startsWith("/admin/page/")
-                      ? page.url ===
-                        `/admin/pages/${page.props.adminPages.find((p) => p.slug === url.split("/").pop())?.id}`
-                      : page.url === url
-                  )
-                    ? "active"
-                    : ""
-                }
-              >
-                <Icon size={17} />
-                {label}
-                {label === "Applications" && Number(page.props.unread) > 0 && (
-                  <span
-                    className="badge pending"
-                    aria-label={`${page.props.unread} unread applications`}
-                  >
-                    {Number(page.props.unread)}
-                  </span>
-                )}
-              </Link>
-            ))}
+                      ? `/admin/pages/${page.props.adminPages.find((p) => p.slug === url.split("/").pop())?.id}`
+                      : url
+                  }
+                  key={label}
+                  className={
+                    (
+                      url.startsWith("/admin/page/")
+                        ? page.url ===
+                          `/admin/pages/${page.props.adminPages.find((p) => p.slug === url.split("/").pop())?.id}`
+                        : page.url === url
+                    )
+                      ? "active"
+                      : ""
+                  }
+                >
+                  <Icon size={17} />
+                  {label}
+                  {label === "Applications" &&
+                    Number(page.props.unread) > 0 && (
+                      <span
+                        className="badge pending"
+                        aria-label={`${page.props.unread} unread applications`}
+                      >
+                        {Number(page.props.unread)}
+                      </span>
+                    )}
+                </Link>
+              ))}
           </div>
         ))}
         <button
