@@ -13,6 +13,8 @@ export default function Members({
 }) {
   const [search, setSearch] = useState("");
   const [addingPosition, setAddingPosition] = useState(false);
+  const [editingPosition, setEditingPosition] = useState<Position>();
+  const [managingPositions, setManagingPositions] = useState(false);
   const move = (index: number, direction: number) => {
     const ids = members.data.map((m) => m.id);
     const target = index + direction;
@@ -27,9 +29,18 @@ export default function Members({
         <>
           <button
             className="admin-button secondary"
-            onClick={() => setAddingPosition(true)}
+            onClick={() => {
+              setEditingPosition(undefined);
+              setAddingPosition(true);
+            }}
           >
             Add position
+          </button>
+          <button
+            className="admin-button secondary"
+            onClick={() => setManagingPositions((value) => !value)}
+          >
+            Manage positions
           </button>
           <Link className="admin-button" href="/admin/members/create">
             Add member
@@ -39,9 +50,45 @@ export default function Members({
     >
       {addingPosition && (
         <MembershipPositionForm
+          key={editingPosition?.id || "new"}
+          position={editingPosition}
           positions={positions}
           onClose={() => setAddingPosition(false)}
         />
+      )}
+      {managingPositions && (
+        <div className="admin-panel table-wrap">
+          <h2>Membership positions</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Position</th>
+                <th>Order</th>
+                <th>Type</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {positions.map((position) => (
+                <tr key={position.id}>
+                  <td>{position.name}</td>
+                  <td>{position.rank}</td>
+                  <td>{position.is_officer ? "Officer" : "Regular"}</td>
+                  <td>
+                    <button
+                      onClick={() => {
+                        setEditingPosition(position);
+                        setAddingPosition(true);
+                      }}
+                    >
+                      Edit position
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
       <form
         className="search-bar"
@@ -106,7 +153,11 @@ export default function Members({
                   <button
                     className="danger-link"
                     onClick={() => {
-                      if (confirm(`Permanently delete ${m.first_name} ${m.last_name}? This cannot be undone. Related celebrations will remain but will no longer be linked to this member.`))
+                      if (
+                        confirm(
+                          `Permanently delete ${m.first_name} ${m.last_name}? This cannot be undone. Related celebrations will remain but will no longer be linked to this member.`,
+                        )
+                      )
                         apiActions.delete(`/admin/members/${m.id}`);
                     }}
                   >

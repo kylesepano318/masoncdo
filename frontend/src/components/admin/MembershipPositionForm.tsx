@@ -4,22 +4,28 @@ import type { Position } from "../../types";
 
 export default function MembershipPositionForm({
   positions,
+  position,
   onClose,
 }: {
   positions: Position[];
+  position?: Position;
   onClose: () => void;
 }) {
   const form = useApiForm({
-    name: "",
-    rank: Math.min(
-      1000,
-      Math.max(0, ...positions.map((position) => position.rank)) + 1,
-    ),
-    is_officer: false,
+    name: position?.name || "",
+    rank:
+      position?.rank ??
+      Math.min(
+        1000,
+        Math.max(0, ...positions.map((position) => position.rank)) + 1,
+      ),
+    is_officer: position?.is_officer ?? false,
   });
   return (
     <section className="admin-panel">
-      <h2>Add membership position</h2>
+      <h2>
+        {position ? "Edit membership position" : "Add membership position"}
+      </h2>
       <p className="help">
         Existing positions:{" "}
         {positions.map((position) => position.name).join(", ")}.
@@ -27,7 +33,14 @@ export default function MembershipPositionForm({
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          void form.post("/admin/membership-positions", { onSuccess: onClose });
+          if (position)
+            void form.put(`/admin/membership-positions/${position.id}`, {
+              onSuccess: onClose,
+            });
+          else
+            void form.post("/admin/membership-positions", {
+              onSuccess: onClose,
+            });
         }}
       >
         <Errors errors={form.errors} />

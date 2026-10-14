@@ -22,11 +22,14 @@ Route::post('/applications', [ApiPublicController::class, 'submit'])->middleware
 Route::post('/admin/login', [ApiAuthController::class, 'login'])->middleware('throttle:5,1');
 Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/administrators', [AdministratorController::class, 'index']);
+    Route::put('/administrators/{administrator}', [AdministratorController::class, 'update']);
+    Route::post('/administrators/{administrator}/reset-password', [AdministratorController::class, 'resetPassword'])->middleware('throttle:10,1');
     Route::post('/administrators', [AdministratorController::class, 'store'])->middleware('throttle:10,1');
     Route::delete('/administrators/{administrator}', [AdministratorController::class, 'destroy']);
     Route::post('/celebration-types', [CelebrationTypeController::class, 'store']);
     Route::delete('/celebration-types/{celebrationType}', [CelebrationTypeController::class, 'destroy']);
     Route::post('/membership-positions', [MembershipPositionController::class, 'store']);
+    Route::put('/membership-positions/{membershipPosition}', [MembershipPositionController::class, 'update']);
     Route::get('/me', [ApiAuthController::class, 'me']);
     Route::post('/logout', [ApiAuthController::class, 'logout']);
     Route::put('/account', [ApiAuthController::class, 'account'])->middleware('throttle:5,1');

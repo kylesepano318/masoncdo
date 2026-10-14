@@ -30,11 +30,15 @@ class AdministratorManagementTest extends TestCase
         $this->getJson('/api/admin/administrators')->assertUnauthorized();
         $this->postJson('/api/admin/administrators', $this->credentials())->assertUnauthorized();
         $this->deleteJson('/api/admin/administrators/'.$target->id)->assertUnauthorized();
+        $this->putJson('/api/admin/administrators/'.$target->id, [])->assertUnauthorized();
+        $this->postJson('/api/admin/administrators/'.$target->id.'/reset-password')->assertUnauthorized();
         foreach ([false, true] as $isAdmin) {
             $this->actingAs(User::factory()->create(['is_admin' => $isAdmin]));
             $this->getJson('/api/admin/administrators')->assertForbidden();
             $this->postJson('/api/admin/administrators', $this->credentials())->assertForbidden();
             $this->deleteJson('/api/admin/administrators/'.$target->id)->assertForbidden();
+            $this->putJson('/api/admin/administrators/'.$target->id, [])->assertForbidden();
+            $this->postJson('/api/admin/administrators/'.$target->id.'/reset-password')->assertForbidden();
         }
         $this->assertDatabaseHas('users', ['id' => $target->id]);
     }
@@ -49,6 +53,44 @@ class AdministratorManagementTest extends TestCase
         $this->getJson('/api/admin/administrators')->assertOk()->assertJsonMissingPath('administrators.0.password');
         $this->postJson('/api/admin/administrators', $this->credentials())->assertJsonValidationErrors(['username', 'email']);
         $this->postJson('/api/admin/administrators', array_replace($this->credentials(), ['username' => 'anotherAdmin', 'email' => 'another@example.test', 'password' => 'weak', 'password_confirmation' => 'weak']))->assertJsonValidationErrors('password');
+    }
+
+    public function test_superadmin_edits_regular_admin_without_changing_role_or_password(): void
+    {
+        config(['session.driver' => 'database']);
+        $owner = $this->superadmin();
+        $admin = User::factory()->create(['is_admin' => true]);
+        $hash = $admin->password;
+        DB::table('sessions')->insert(['id' => 'admin-edit-session', 'user_id' => $admin->id, 'payload' => base64_encode(serialize([])), 'last_activity' => time()]);
+        $payload = ['name' => 'Updated Name', 'username' => 'updatedAdmin', 'email' => 'updated@example.test', 'is_superadmin' => true, 'password' => 'Ignored-password!42'];
+        $this->actingAs($owner)->putJson('/api/admin/administrators/'.$admin->id, $payload)->assertOk();
+        $admin->refresh();
+        $this->assertSame('updatedAdmin', $admin->username);
+        $this->assertSame('Updated Name', $admin->name);
+        $this->assertSame($hash, $admin->password);
+        $this->assertFalse($admin->is_superadmin);
+        $this->assertNull($admin->email_verified_at);
+        $this->assertDatabaseMissing('sessions', ['id' => 'admin-edit-session']);
+        $this->putJson('/api/admin/administrators/'.$admin->id, array_replace($payload, ['email' => $owner->email]))->assertJsonValidationErrors('email');
+        $this->putJson('/api/admin/administrators/'.$owner->id, $payload)->assertJsonValidationErrors('administrator');
+    }
+
+    public function test_superadmin_password_reset_hashes_default_revokes_sessions_and_preserves_role(): void
+    {
+        config(['session.driver' => 'database']);
+        $owner = $this->superadmin();
+        $admin = User::factory()->create(['is_admin' => true, 'password' => 'Previous-password!42']);
+        $oldToken = $admin->remember_token;
+        DB::table('sessions')->insert(['id' => 'admin-reset-session', 'user_id' => $admin->id, 'payload' => base64_encode(serialize([])), 'last_activity' => time()]);
+        $this->actingAs($owner)->postJson('/api/admin/administrators/'.$admin->id.'/reset-password', ['password' => 'Ignored-password!42'])->assertOk();
+        $admin->refresh();
+        $this->assertTrue(Hash::check('Gfmasoniclodge40!', $admin->password));
+        $this->assertFalse(Hash::check('Previous-password!42', $admin->password));
+        $this->assertNotSame($oldToken, $admin->remember_token);
+        $this->assertFalse($admin->is_superadmin);
+        $this->assertDatabaseMissing('sessions', ['id' => 'admin-reset-session']);
+        $this->postJson('/api/admin/administrators/'.$owner->id.'/reset-password')->assertJsonValidationErrors('administrator');
+        $this->assertDatabaseMissing('activity_logs', ['context' => 'Gfmasoniclodge40!']);
     }
 
     public function test_superadmins_are_protected_but_an_ordinary_admin_can_be_deleted(): void

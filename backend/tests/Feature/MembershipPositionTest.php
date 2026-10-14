@@ -47,6 +47,30 @@ class MembershipPositionTest extends TestCase
         $this->assertDatabaseCount('membership_positions', 4);
     }
 
+    public function test_position_edits_preserve_assignments_and_enforce_officer_constraints(): void
+    {
+        $position = MembershipPosition::where('slug', 'member')->firstOrFail();
+        $data = ['name' => 'Brethren', 'rank' => 8, 'is_officer' => true];
+        $this->putJson('/api/admin/membership-positions/'.$position->id, $data)->assertUnauthorized();
+        $this->actingAs(User::factory()->create())->putJson('/api/admin/membership-positions/'.$position->id, $data)->assertForbidden();
+        $this->actingAs($this->admin());
+        $service = app(MemberService::class);
+        $first = $service->save(['first_name' => 'First', 'last_name' => 'Member', 'membership_position_id' => $position->id, 'status' => 'active', 'is_public' => true]);
+        $second = $service->save(['first_name' => 'Second', 'last_name' => 'Member', 'membership_position_id' => $position->id, 'status' => 'active', 'is_public' => true]);
+        $url = '/api/admin/membership-positions/'.$position->id;
+        $this->putJson($url, $data)->assertJsonValidationErrors('is_officer');
+        $this->assertSame('Member', $position->fresh()->name);
+        $second->update(['status' => 'inactive']);
+        $this->putJson($url, $data)->assertOk();
+        $this->assertSame($position->id, $first->fresh()->membership_position_id);
+        $this->assertSame($position->id, $first->fresh()->active_officer_position);
+        $this->assertSame('Brethren', $position->fresh()->name);
+        $this->putJson($url, array_replace($data, ['name' => 'Worshipful Master']))->assertJsonValidationErrors('name');
+        $this->putJson($url, array_replace($data, ['is_officer' => false]))->assertOk();
+        $this->assertNull($first->fresh()->active_officer_position);
+        $this->assertFalse($position->fresh()->is_officer);
+    }
+
     public function test_custom_regular_and_officer_positions_follow_existing_membership_rules(): void
     {
         $this->actingAs($this->admin());

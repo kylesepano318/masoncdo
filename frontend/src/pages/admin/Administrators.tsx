@@ -85,26 +85,100 @@ function CreateAdministrator({ onClose }: { onClose: () => void }) {
   );
 }
 
+function EditAdministrator({
+  administrator,
+  onClose,
+}: {
+  administrator: Administrator;
+  onClose: () => void;
+}) {
+  const f = useApiForm({
+    name: administrator.name,
+    username: administrator.username || "",
+    email: administrator.email,
+  });
+  return (
+    <form
+      className="admin-panel editor-form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        void f.put(`/admin/administrators/${administrator.id}`, {
+          onSuccess: onClose,
+        });
+      }}
+    >
+      <h2>Edit administrator</h2>
+      <Errors errors={f.errors} />
+      {(["name", "username", "email"] as const).map((key) => (
+        <Field
+          key={key}
+          label={key.charAt(0).toUpperCase() + key.slice(1)}
+          error={f.errors[key]}
+        >
+          <input
+            required
+            type={key === "email" ? "email" : "text"}
+            value={f.data[key]}
+            onChange={(e) => f.setData(key, e.target.value)}
+          />
+        </Field>
+      ))}
+      <p className="help">
+        Changing the username or email signs this administrator out of existing
+        sessions. Their password and role stay the same.
+      </p>
+      <div className="admin-actions">
+        <button className="admin-button" disabled={f.processing}>
+          {f.processing ? "Saving…" : "Save administrator"}
+        </button>
+        <button
+          type="button"
+          className="admin-button secondary"
+          disabled={f.processing}
+          onClick={onClose}
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
+
 export default function Administrators({
   administrators,
 }: {
   administrators: Administrator[];
 }) {
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<Administrator>();
   return (
     <AdminLayout
       title="Administrators"
       actions={
-        <button className="admin-button" onClick={() => setCreating(true)}>
+        <button
+          className="admin-button"
+          onClick={() => {
+            setEditing(undefined);
+            setCreating(true);
+          }}
+        >
           Add administrator
         </button>
       }
     >
       <p className="help">
-        Only the two superadministrators can add or delete administrator
-        accounts. Superadministrator accounts are protected from deletion.
+        Only the two superadministrators can add, edit, reset passwords, or
+        delete administrator accounts. Superadministrator accounts are protected
+        from deletion.
       </p>
       {creating && <CreateAdministrator onClose={() => setCreating(false)} />}
+      {editing && (
+        <EditAdministrator
+          key={editing.id}
+          administrator={editing}
+          onClose={() => setEditing(undefined)}
+        />
+      )}
       <div className="admin-panel table-wrap">
         <table>
           <thead>
@@ -131,21 +205,45 @@ export default function Administrators({
                   {admin.is_superadmin ? (
                     "Protected account"
                   ) : (
-                    <button
-                      className="danger-link"
-                      onClick={() => {
-                        if (
-                          confirm(
-                            `Permanently delete administrator "${admin.name}"? Their login access will be removed. This cannot be undone.`,
+                    <div className="admin-actions">
+                      <button
+                        onClick={() => {
+                          setCreating(false);
+                          setEditing(admin);
+                        }}
+                      >
+                        Edit administrator
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (
+                            confirm(
+                              `Reset the password for "${admin.name}" to Gfmasoniclodge40!? Existing sessions will be signed out. Ask them to change the password after signing in.`,
+                            )
                           )
-                        )
-                          void apiActions.delete(
-                            `/admin/administrators/${admin.id}`,
-                          );
-                      }}
-                    >
-                      Delete administrator
-                    </button>
+                            void apiActions.post(
+                              `/admin/administrators/${admin.id}/reset-password`,
+                            );
+                        }}
+                      >
+                        Reset password
+                      </button>
+                      <button
+                        className="danger-link"
+                        onClick={() => {
+                          if (
+                            confirm(
+                              `Permanently delete administrator "${admin.name}"? Their login access will be removed. This cannot be undone.`,
+                            )
+                          )
+                            void apiActions.delete(
+                              `/admin/administrators/${admin.id}`,
+                            );
+                        }}
+                      >
+                        Delete administrator
+                      </button>
+                    </div>
                   )}
                 </td>
               </tr>

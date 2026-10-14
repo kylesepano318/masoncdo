@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ComponentType } from "react";
 import {
   BrowserRouter,
@@ -22,6 +22,10 @@ const modules = import.meta.glob<{
   default: ComponentType<Record<string, unknown>>;
 }>("./pages/**/*.tsx");
 function App() {
+  const noticePath = useRef("");
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   const submitting = useSubmitting();
   const location = useLocation(),
     navigate = useNavigate();
@@ -42,11 +46,18 @@ function App() {
     [error, setError] = useState("");
   useEffect(() => {
     const refresh = () => reload((v) => v + 1);
-    const notification = (event: Event) =>
+    const notification = (event: Event) => {
+      noticePath.current = window.location.pathname + window.location.search;
+      clearTimeout(noticeTimer.current);
       setShared((v) => ({
         ...v,
         flash: { success: (event as CustomEvent<string>).detail },
       }));
+      noticeTimer.current = setTimeout(
+        () => setShared((v) => ({ ...v, flash: {} })),
+        5000,
+      );
+    };
     const move = (event: Event) => {
       const { path, state } = (event as CustomEvent).detail;
       navigate(path, { state });
@@ -55,11 +66,18 @@ function App() {
     window.addEventListener("lodge:notice", notification);
     window.addEventListener("lodge:navigate", move);
     return () => {
+      clearTimeout(noticeTimer.current);
       window.removeEventListener("lodge:refresh", refresh);
       window.removeEventListener("lodge:notice", notification);
       window.removeEventListener("lodge:navigate", move);
     };
   }, [navigate]);
+  useEffect(() => {
+    if (noticePath.current !== location.pathname + location.search) {
+      clearTimeout(noticeTimer.current);
+      setShared((v) => ({ ...v, flash: {} }));
+    }
+  }, [location.pathname, location.search]);
   useEffect(() => {
     if (
       !location.pathname.startsWith("/admin") ||
