@@ -13,64 +13,94 @@ export default function Applications({
     params = new URLSearchParams(location.search);
   const [search, setSearch] = useState(params.get("search") || "");
   const filter = (key: string, value: string) => {
-    params.set(key, value);
+    if (search.trim()) params.set("search", search.trim());
+    else params.delete("search");
+    if (value.trim()) params.set(key, value.trim());
+    else params.delete(key);
     params.delete("page");
     apiActions.get("/admin/applications", Object.fromEntries(params));
   };
   return (
     <AdminLayout title="Applications">
       <form
-        className="search-bar"
+        className="application-filters admin-panel"
         onSubmit={(e) => {
           e.preventDefault();
           filter("search", search);
         }}
       >
-        <input
-          aria-label="Search applications"
-          placeholder="Reference, applicant or email"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <button className="admin-button">Search</button>
-        <select
-          aria-label="Filter applications by status"
-          value={params.get("status") || ""}
-          onChange={(e) => filter("status", e.target.value)}
-        >
-          <option value="">All statuses</option>
-          {["pending", "under_review", "approved", "rejected"].map((s) => (
-            <option key={s} value={s}>
-              {s.replaceAll("_", " ")}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label="Filter unread applications"
-          value={params.get("unread") || "0"}
-          onChange={(e) => filter("unread", e.target.value)}
-        >
-          <option value="0">All applications</option>
-          <option value="1">Unread only</option>
-        </select>
-        <select
-          aria-label="Sort applications"
-          value={params.get("sort") || "submitted_at"}
-          onChange={(e) => filter("sort", e.target.value)}
-        >
-          <option value="submitted_at">Submitted date</option>
-          <option value="last_name">Applicant name</option>
-          <option value="reference_number">Reference</option>
-          <option value="status">Status</option>
-        </select>
-        <select
-          aria-label="Sort direction"
-          value={params.get("direction") || "desc"}
-          onChange={(e) => filter("direction", e.target.value)}
-        >
-          <option value="desc">Descending</option>
-          <option value="asc">Ascending</option>
-        </select>
+        <div className="application-filter-search">
+          <label className="application-filter-field">
+            <span>Search applications</span>
+            <input
+              aria-label="Search applications"
+              placeholder="Reference, applicant or email"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </label>
+          <button className="admin-button">Search</button>
+          <button
+            type="button"
+            className="admin-button secondary"
+            onClick={() => {
+              setSearch("");
+              apiActions.get("/admin/applications", {});
+            }}
+          >
+            Clear filters
+          </button>
+        </div>
+        <label className="application-filter-field">
+          <span>Status</span>
+          <select
+            aria-label="Filter applications by status"
+            value={params.get("status") || ""}
+            onChange={(e) => filter("status", e.target.value)}
+          >
+            <option value="">All statuses</option>
+            {["pending", "under_review", "approved", "rejected"].map((s) => (
+              <option key={s} value={s}>
+                {s.replaceAll("_", " ")}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="application-filter-field">
+          <span>Read status</span>
+          <select
+            aria-label="Filter unread applications"
+            value={params.get("unread") || "0"}
+            onChange={(e) => filter("unread", e.target.value)}
+          >
+            <option value="0">All applications</option>
+            <option value="1">Unread only</option>
+          </select>
+        </label>
+        <label className="application-filter-field">
+          <span>Sort by</span>
+          <select
+            aria-label="Sort applications"
+            value={params.get("sort") || "submitted_at"}
+            onChange={(e) => filter("sort", e.target.value)}
+          >
+            <option value="submitted_at">Submitted date</option>
+            <option value="last_name">Applicant name</option>
+            <option value="reference_number">Reference</option>
+            <option value="status">Status</option>
+          </select>
+        </label>
+        <label className="application-filter-field">
+          <span>Sort direction</span>
+          <select
+            aria-label="Sort direction"
+            value={params.get("direction") || "desc"}
+            onChange={(e) => filter("direction", e.target.value)}
+          >
+            <option value="desc">Descending</option>
+            <option value="asc">Ascending</option>
+          </select>
+        </label>
       </form>
       <div className="admin-panel table-wrap">
         <table>

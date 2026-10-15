@@ -1275,6 +1275,46 @@ td button {
   border-radius: 4px;
   font-size: 12px;
 }
+.application-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 18px;
+  margin-bottom: 22px;
+}
+.application-filter-search {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.application-filter-search .application-filter-field {
+  flex: 1 1 260px;
+}
+.application-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  font-size: 12px;
+  color: #39485b;
+}
+.application-filter-field input,
+.application-filter-field select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 12px 14px;
+  border: 1px solid #dfe4eb;
+  border-radius: 4px;
+  background: #fff;
+  color: #19283b;
+  font: inherit;
+}
+.application-filter-search .admin-button {
+  min-height: 44px;
+  white-space: nowrap;
+}
 .admin-app .field input:not([type="color"]),
 .admin-app .field select,
 .admin-app .field textarea {
