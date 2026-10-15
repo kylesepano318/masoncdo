@@ -68,14 +68,14 @@ export default function MembershipPositionForm({
           </Field>
         </div>
         <Checkbox
-          label="Officer position — one active member at a time"
+          label="Officer position — show assigned members in Officers"
           checked={form.data.is_officer}
           onChange={(value) => form.setData("is_officer", value)}
         />
         <p className="help">
           Lower display numbers appear first in position lists. Officer
-          positions appear in the officers section; regular positions allow
-          multiple members.
+          positions appear in the Officers section. Both officer and regular
+          positions allow multiple active members.
         </p>
         <div className="admin-actions">
           <button className="admin-button" disabled={form.processing}>

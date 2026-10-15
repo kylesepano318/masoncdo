@@ -6,7 +6,6 @@ use App\Models\MembershipPosition;
 use App\Models\User;
 use App\Services\MemberService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class MembershipPositionTest extends TestCase
@@ -47,7 +46,7 @@ class MembershipPositionTest extends TestCase
         $this->assertDatabaseCount('membership_positions', 4);
     }
 
-    public function test_position_edits_preserve_assignments_and_enforce_officer_constraints(): void
+    public function test_position_edits_preserve_assignments_and_allow_multiple_officers(): void
     {
         $position = MembershipPosition::where('slug', 'member')->firstOrFail();
         $data = ['name' => 'Brethren', 'rank' => 8, 'is_officer' => true];
@@ -58,16 +57,16 @@ class MembershipPositionTest extends TestCase
         $first = $service->save(['first_name' => 'First', 'last_name' => 'Member', 'membership_position_id' => $position->id, 'status' => 'active', 'is_public' => true]);
         $second = $service->save(['first_name' => 'Second', 'last_name' => 'Member', 'membership_position_id' => $position->id, 'status' => 'active', 'is_public' => true]);
         $url = '/api/admin/membership-positions/'.$position->id;
-        $this->putJson($url, $data)->assertJsonValidationErrors('is_officer');
-        $this->assertSame('Member', $position->fresh()->name);
-        $second->update(['status' => 'inactive']);
         $this->putJson($url, $data)->assertOk();
         $this->assertSame($position->id, $first->fresh()->membership_position_id);
         $this->assertSame($position->id, $first->fresh()->active_officer_position);
+        $this->assertSame($position->id, $second->fresh()->active_officer_position);
         $this->assertSame('Brethren', $position->fresh()->name);
+        $this->getJson('/api/public/members')->assertJsonCount(2, 'data')->assertJsonPath('data.0.position.is_officer', true)->assertJsonPath('data.1.position.is_officer', true);
         $this->putJson($url, array_replace($data, ['name' => 'Worshipful Master']))->assertJsonValidationErrors('name');
         $this->putJson($url, array_replace($data, ['is_officer' => false]))->assertOk();
         $this->assertNull($first->fresh()->active_officer_position);
+        $this->assertNull($second->fresh()->active_officer_position);
         $this->assertFalse($position->fresh()->is_officer);
     }
 
@@ -82,14 +81,8 @@ class MembershipPositionTest extends TestCase
         $service = app(MemberService::class);
         $data = ['first_name' => 'First', 'last_name' => 'Officer', 'membership_position_id' => $secretary->id, 'status' => 'active', 'is_public' => true];
         $first = $service->save($data);
-        try {
-            $service->save(array_replace($data, ['first_name' => 'Second']));
-            $this->fail('Officer replacement must require confirmation.');
-        } catch (ValidationException $e) {
-            $this->assertArrayHasKey('replace_officer', $e->errors());
-        }
-        $second = $service->save(array_replace($data, ['first_name' => 'Second']), null, true);
-        $this->assertSame('past_officer', $first->fresh()->status);
+        $second = $service->save(array_replace($data, ['first_name' => 'Second']));
+        $this->assertSame('active', $first->fresh()->status);
         $this->assertSame($secretary->id, $second->active_officer_position);
         foreach (['One', 'Two'] as $name) {
             $service->save(array_replace($data, ['first_name' => $name, 'membership_position_id' => $honorary->id]));

@@ -26,7 +26,6 @@ export default function MemberEdit({
     status: member?.status || "active",
     display_order: member?.display_order || 0,
     is_public: member?.is_public ?? true,
-    replace_officer: false,
   });
   const text = (
     key:
@@ -133,16 +132,6 @@ export default function MemberEdit({
           checked={f.data.is_public}
           onChange={(v) => f.setData("is_public", v)}
         />
-        {f.errors.replace_officer && (
-          <div className="warning-box">
-            <p>{f.errors.replace_officer}</p>
-            <Checkbox
-              label="Confirm replacement and move the current officer to Past Officer"
-              checked={f.data.replace_officer}
-              onChange={(v) => f.setData("replace_officer", v)}
-            />
-          </div>
-        )}
         <div className="admin-actions">
           <button className="admin-button" disabled={f.processing}>
             {f.processing ? "Please wait…" : "Save member"}

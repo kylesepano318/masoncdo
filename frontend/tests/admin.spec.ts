@@ -53,7 +53,7 @@ test("administrator manages members, birthday visibility, applications, and CMS 
     await page.getByLabel("Position name", { exact: true }).fill(position.name);
     if (position.officer)
       await page
-        .getByLabel("Officer position — one active member at a time")
+        .getByLabel("Officer position — show assigned members in Officers")
         .check();
     if (!position.officer) {
       let attempts = 0;

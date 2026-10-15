@@ -11,7 +11,6 @@ use App\Models\PageSection;
 use App\Models\User;
 use App\Services\ApplicationService;
 use App\Services\MemberService;
-use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
@@ -103,26 +102,24 @@ class LodgeTest extends TestCase
         $this->assertDatabaseMissing('members', ['id' => $member->id]);
     }
 
-    public function test_all_three_officer_positions_require_confirmation_and_replace_transactionally(): void
+    public function test_all_three_officer_positions_allow_multiple_active_members(): void
     {
         $this->actingAs($this->admin());
         foreach ([1, 2, 3] as $position) {
             $this->postJson('/api/admin/members', $this->memberData($position))->assertSuccessful();
             $old = Member::where('active_officer_position', MembershipPosition::where('rank', $position)->firstOrFail()->id)->first();
-            $data = array_replace($this->memberData($position), ['first_name' => 'Replacement']);
-            $this->postJson('/api/admin/members', $data)->assertJsonValidationErrors('replace_officer');
-            $this->assertSame(1, Member::where('active_officer_position', MembershipPosition::where('rank', $position)->firstOrFail()->id)->count());
-            $this->postJson('/api/admin/members', $data + ['replace_officer' => true])->assertSuccessful();
-            $this->assertSame('past_officer', $old->fresh()->status);
-            $this->assertSame(1, Member::where('active_officer_position', MembershipPosition::where('rank', $position)->firstOrFail()->id)->count());
+            $data = array_replace($this->memberData($position), ['first_name' => 'Additional']);
+            $this->postJson('/api/admin/members', $data)->assertSuccessful();
+            $this->assertSame('active', $old->fresh()->status);
+            $this->assertSame(2, Member::where('active_officer_position', MembershipPosition::where('rank', $position)->firstOrFail()->id)->count());
         }
     }
 
-    public function test_database_rejects_duplicate_active_officers(): void
+    public function test_database_allows_multiple_active_officers_in_the_same_position(): void
     {
         app(MemberService::class)->save($this->memberData(1));
-        $this->expectException(QueryException::class);
         Member::create($this->memberData(1) + ['active_officer_position' => MembershipPosition::where('rank', 1)->firstOrFail()->id]);
+        $this->assertSame(2, Member::whereNotNull('active_officer_position')->count());
     }
 
     public function test_multiple_normal_members_and_public_visibility(): void

@@ -48,13 +48,13 @@ class MemberController extends Controller
     private function save(MemberRequest $r, MemberService $service, ?Member $member = null)
     {
         $data = $r->validated();
-        unset($data['photo'],$data['replace_officer']);
+        unset($data['photo']);
         $oldPath = $member?->profile_photo;
         if ($r->hasFile('photo')) {
             $upload = app(MediaStorage::class)->upload($r->file('photo'), $data['first_name'].' '.$data['last_name']);
             $data['profile_photo'] = $upload->path;
         }
-        $saved = $service->save($data, $member, $r->boolean('replace_officer'));
+        $saved = $service->save($data, $member);
         if ($oldPath && $oldPath !== $saved->profile_photo && ($old = Media::where('path', $oldPath)->first()) && ! app(MediaReferences::class)->inUse($old)) {
             try {
                 app(MediaStorage::class)->destroy($old);

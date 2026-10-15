@@ -73,7 +73,7 @@ After deployment, log in with either superadmin and open **Administrators** in t
 
 Superadmin accounts cannot be edited, reset, or deleted through administrator management; they manage their own credentials under **Login credentials**. New admins cannot be granted the superadmin role through the API. Regular admins keep the existing lodge management features. Deleting a regular admin removes database sessions and prevents future login.
 
-Under **Members > Manage positions**, edit a position's name, display order, or officer setting without changing member assignments. Converting a regular position to officer requires at most one active assigned member. Notifications expire after five seconds and clear when navigating to another page.
+Under **Members > Manage positions**, edit a position's name, display order, or officer setting without changing member assignments. Officer positions allow multiple active assigned members, all shown in the public Officers section when public. The officer checkbox controls classification only. Notifications expire after five seconds and clear when navigating to another page.
 
 The rsync rules exclude/protect `lodge/.env`, all `lodge/storage` data, `lodge/bootstrap/cache`, and all uploaded `public_html/storage` files. Hosting-managed `.well-known`, `cgi-bin`, `.user.ini` and `php.ini` are protected too. The storage `.htaccess` is updated separately. `--delete` removes obsolete application/build files only in the validated application/public directories; excluded persistent data is protected, and `--delete-excluded` is never used.
 

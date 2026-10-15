@@ -8,11 +8,14 @@ export default function OfficersSection({
   section: Section;
   members: PublicMember[];
 }) {
-  const master = members.find((m) => m.position.slug === "worshipful-master");
-  const wardens = members.filter((m) =>
+  const officers = members.filter((member) => member.position.is_officer);
+  const masters = officers.filter(
+    (m) => m.position.slug === "worshipful-master",
+  );
+  const wardens = officers.filter((m) =>
     ["senior-warden", "junior-warden"].includes(m.position.slug),
   );
-  const otherOfficers = members.filter(
+  const otherOfficers = officers.filter(
     (member) =>
       member.position.is_officer &&
       !["worshipful-master", "senior-warden", "junior-warden"].includes(
@@ -22,9 +25,11 @@ export default function OfficersSection({
   return (
     <section className="section officers-section">
       <Heading section={section} />
-      {master && (
-        <div className="master-row">
-          <MemberCard member={master} officer />
+      {masters.length > 0 && (
+        <div className={masters.length === 1 ? "master-row" : "members-grid"}>
+          {masters.map((master) => (
+            <MemberCard key={master.id} member={master} officer />
+          ))}
         </div>
       )}
       {wardens.length > 0 && (
@@ -41,7 +46,7 @@ export default function OfficersSection({
           ))}
         </div>
       )}
-      {!master && !wardens.length && !otherOfficers.length && (
+      {!officers.length && (
         <p className="empty-public">
           The current officers will be introduced here soon.
         </p>

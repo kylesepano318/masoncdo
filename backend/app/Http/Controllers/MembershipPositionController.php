@@ -24,14 +24,9 @@ class MembershipPositionController extends Controller
         try {
             DB::transaction(function () use ($data, $membershipPosition) {
                 $position = MembershipPosition::whereKey($membershipPosition->id)->lockForUpdate()->firstOrFail();
-                $members = Member::where('membership_position_id', $position->id)->lockForUpdate()->get();
-                $active = $members->where('status', 'active');
-                if ($data['is_officer'] && $active->count() > 1) {
-                    throw ValidationException::withMessages(['is_officer' => 'This position has multiple active members. Reassign them until only one remains before making it an officer position.']);
-                }
                 Member::where('membership_position_id', $position->id)->update(['active_officer_position' => null]);
-                if ($data['is_officer'] && $active->isNotEmpty()) {
-                    $active->first()->update(['active_officer_position' => $position->id]);
+                if ($data['is_officer']) {
+                    Member::where('membership_position_id', $position->id)->where('status', 'active')->update(['active_officer_position' => $position->id]);
                 }
                 $position->update($data);
                 Audit::log('Membership Position Updated', ['position_id' => $position->id]);
