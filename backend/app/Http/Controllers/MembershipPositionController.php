@@ -57,7 +57,18 @@ class MembershipPositionController extends Controller
         }
         try {
             DB::transaction(function () use ($data, $membershipPosition) {
-                $position = MembershipPosition::whereKey($membershipPosition->id)->lockForUpdate()->firstOrFail();
+                // Lock the ordered registry before shifting ranks so concurrent edits
+                // and arrow reorders cannot interleave part of a move.
+                $positions = MembershipPosition::orderBy('id')->lockForUpdate()->get();
+                $position = $positions->firstWhere('id', $membershipPosition->id);
+                abort_unless($position, 404);
+                $oldRank = (int) $position->rank;
+                $newRank = (int) $data['rank'];
+                if ($newRank < $oldRank) {
+                    MembershipPosition::whereKeyNot($position->id)->whereBetween('rank', [$newRank, $oldRank - 1])->increment('rank');
+                } elseif ($newRank > $oldRank) {
+                    MembershipPosition::whereKeyNot($position->id)->whereBetween('rank', [$oldRank + 1, $newRank])->decrement('rank');
+                }
                 Member::where('membership_position_id', $position->id)->update(['active_officer_position' => null]);
                 if ($data['is_officer']) {
                     Member::where('membership_position_id', $position->id)->where('status', 'active')->update(['active_officer_position' => $position->id]);
@@ -86,6 +97,8 @@ class MembershipPositionController extends Controller
         }
         try {
             $position = DB::transaction(function () use ($data) {
+                MembershipPosition::orderBy('id')->lockForUpdate()->get();
+                MembershipPosition::where('rank', '>=', $data['rank'])->increment('rank');
                 $position = MembershipPosition::create($data);
                 Audit::log('Membership Position Created', ['position_id' => $position->id]);
 

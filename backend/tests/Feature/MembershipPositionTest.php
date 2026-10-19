@@ -113,6 +113,45 @@ class MembershipPositionTest extends TestCase
         $this->assertFalse($position->fresh()->is_officer);
     }
 
+    public function test_editing_rank_inserts_position_and_shifts_both_directions(): void
+    {
+        $this->actingAs($this->admin());
+        $this->postJson('/api/admin/membership-positions', ['name' => 'Additional Officer', 'rank' => 14, 'is_officer' => true])->assertCreated();
+        $position = MembershipPosition::where('slug', 'additional-officer')->firstOrFail();
+        $before = MembershipPosition::orderBy('rank')->pluck('id')->all();
+        $payload = ['name' => $position->name, 'rank' => 7, 'is_officer' => true];
+        $this->putJson('/api/admin/membership-positions/'.$position->id, $payload)->assertOk();
+        $expected = $before;
+        array_pop($expected);
+        array_splice($expected, 6, 0, [$position->id]);
+        $this->assertSame($expected, MembershipPosition::orderBy('rank')->pluck('id')->all());
+        foreach (array_slice($before, 6, 7) as $index => $id) {
+            $this->assertSame(8 + $index, MembershipPosition::findOrFail($id)->rank);
+        }
+        $this->assertSame(range(1, 14), MembershipPosition::orderBy('rank')->pluck('rank')->all());
+        // Saving at the same rank must not shift any other position again.
+        $this->putJson('/api/admin/membership-positions/'.$position->id, $payload)->assertOk();
+        $this->assertSame($expected, MembershipPosition::orderBy('rank')->pluck('id')->all());
+        $this->putJson('/api/admin/membership-positions/'.$position->id, array_replace($payload, ['rank' => 14]))->assertOk();
+        $this->assertSame($before, MembershipPosition::orderBy('rank')->pluck('id')->all());
+        $this->assertSame(range(1, 14), MembershipPosition::orderBy('rank')->pluck('rank')->all());
+    }
+
+    public function test_new_position_inserts_at_occupied_rank_and_invalid_edit_does_not_shift(): void
+    {
+        $this->actingAs($this->admin());
+        $before = MembershipPosition::orderBy('rank')->pluck('id')->all();
+        $this->postJson('/api/admin/membership-positions', ['name' => 'Inserted Officer', 'rank' => 7, 'is_officer' => true])->assertCreated();
+        $position = MembershipPosition::where('slug', 'inserted-officer')->firstOrFail();
+        $expected = $before;
+        array_splice($expected, 6, 0, [$position->id]);
+        $this->assertSame($expected, MembershipPosition::orderBy('rank')->pluck('id')->all());
+        $this->assertSame(range(1, 14), MembershipPosition::orderBy('rank')->pluck('rank')->all());
+        $this->putJson('/api/admin/membership-positions/'.$position->id, ['name' => 'Worshipful Master', 'rank' => 1, 'is_officer' => true])->assertJsonValidationErrors('name');
+        $this->assertSame($expected, MembershipPosition::orderBy('rank')->pluck('id')->all());
+        $this->assertSame(range(1, 14), MembershipPosition::orderBy('rank')->pluck('rank')->all());
+    }
+
     public function test_custom_regular_and_officer_positions_follow_existing_membership_rules(): void
     {
         $this->actingAs($this->admin());

@@ -73,7 +73,8 @@ export default function MembershipPositionForm({
           onChange={(value) => form.setData("is_officer", value)}
         />
         <p className="help">
-          Lower display numbers appear first in position lists. Officer
+          Enter where this position should appear. Saving moves it into that
+          spot and shifts the affected positions automatically. Officer
           positions appear in the Officers section. Both officer and regular
           positions allow multiple active members.
         </p>
