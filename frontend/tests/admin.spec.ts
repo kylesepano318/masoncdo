@@ -45,7 +45,7 @@ test("administrator manages members, birthday visibility, applications, and CMS 
   await page.goto("/admin/members");
   for (const position of [
     { name: "Honorary Member", officer: false },
-    { name: "Secretary", officer: true },
+    { name: "Assistant Secretary", officer: true },
   ]) {
     await page
       .getByRole("button", { name: "Add position", exact: true })
@@ -53,7 +53,7 @@ test("administrator manages members, birthday visibility, applications, and CMS 
     await page.getByLabel("Position name", { exact: true }).fill(position.name);
     if (position.officer)
       await page
-        .getByLabel("Officer position — show assigned members in Officers")
+        .getByLabel("Officer position â€” show assigned members in Officers")
         .check();
     if (!position.officer) {
       let attempts = 0;
@@ -89,7 +89,7 @@ test("administrator manages members, birthday visibility, applications, and CMS 
         page.getByRole("status").filter({ hasText: "Submitting" }),
       ).toBeVisible();
       await expect(
-        page.locator("button").filter({ hasText: "Saving…" }),
+        page.locator("button").filter({ hasText: "Savingâ€¦" }),
       ).toBeDisabled();
       await expect.poll(() => attempts).toBe(1);
       release();
@@ -140,7 +140,7 @@ test("administrator manages members, birthday visibility, applications, and CMS 
   await page.getByLabel("Last name").fill("LodgeOfficer");
   await page
     .getByLabel("Membership position", { exact: true })
-    .selectOption({ label: "Secretary" });
+    .selectOption({ label: "Assistant Secretary" });
   await page.getByRole("button", { name: "Save member", exact: true }).click();
   await expect(page).toHaveURL(/admin\/members$/);
   await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -179,7 +179,7 @@ test("administrator manages members, birthday visibility, applications, and CMS 
       .filter({ hasText: "Installation Ceremony" }),
   ).toHaveCount(1);
   await expect(
-    page.getByLabel("Public — display this celebration on the website"),
+    page.getByLabel("Public â€” display this celebration on the website"),
   ).toBeChecked();
   const year = new Date().getFullYear();
   await page.getByLabel("Title *", { exact: true }).fill("Birthday this year");
@@ -272,7 +272,7 @@ test("administrator manages members, birthday visibility, applications, and CMS 
   await expect(
     page.getByLabel("Photo caption", { exact: true }).first(),
   ).toHaveValue("Birthday gathering");
-  await page.getByRole("button", { name: "Close ×", exact: true }).click();
+  await page.getByRole("button", { name: "Close Ã—", exact: true }).click();
   await page.getByRole("button", { name: "Add celebration" }).click();
   await page
     .getByLabel("Title *", { exact: true })
@@ -286,7 +286,7 @@ test("administrator manages members, birthday visibility, applications, and CMS 
   await page.getByLabel("Title *", { exact: true }).fill("Private birthday");
   await page.getByLabel("Celebration date").fill(`${year}-12-25`);
   await page
-    .getByLabel("Public — display this celebration on the website")
+    .getByLabel("Public â€” display this celebration on the website")
     .uncheck();
   await page.getByRole("button", { name: "Save celebration" }).click();
   await expect(

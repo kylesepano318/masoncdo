@@ -29,11 +29,11 @@ class MembershipPositionTest extends TestCase
 
     public function test_only_admin_can_add_a_position(): void
     {
-        $payload = ['name' => 'Secretary', 'rank' => 5, 'is_officer' => true];
+        $payload = ['name' => 'Assistant Secretary', 'rank' => 5, 'is_officer' => true];
         $this->postJson('/api/admin/membership-positions', $payload)->assertUnauthorized();
         $this->actingAs(User::factory()->create())->postJson('/api/admin/membership-positions', $payload)->assertForbidden();
-        $this->actingAs($this->admin())->postJson('/api/admin/membership-positions', $payload)->assertCreated()->assertJsonPath('position.slug', 'secretary');
-        $this->getJson('/api/admin/members/create')->assertJsonFragment(['name' => 'Secretary', 'is_officer' => true]);
+        $this->actingAs($this->admin())->postJson('/api/admin/membership-positions', $payload)->assertCreated()->assertJsonPath('position.slug', 'assistant-secretary');
+        $this->getJson('/api/admin/members/create')->assertJsonFragment(['name' => 'Assistant Secretary', 'is_officer' => true]);
     }
 
     public function test_invalid_and_duplicate_positions_are_rejected(): void
@@ -43,7 +43,7 @@ class MembershipPositionTest extends TestCase
         foreach (['Member', 'MEMBER', 'Worshipful Master', 'Worshipful-Master'] as $name) {
             $this->postJson('/api/admin/membership-positions', ['name' => $name, 'rank' => 5, 'is_officer' => false])->assertJsonValidationErrors('name');
         }
-        $this->assertDatabaseCount('membership_positions', 4);
+        $this->assertDatabaseCount('membership_positions', 13);
     }
 
     public function test_position_edits_preserve_assignments_and_allow_multiple_officers(): void
@@ -73,10 +73,10 @@ class MembershipPositionTest extends TestCase
     public function test_custom_regular_and_officer_positions_follow_existing_membership_rules(): void
     {
         $this->actingAs($this->admin());
-        foreach ([['name' => 'Secretary', 'rank' => 5, 'is_officer' => true], ['name' => 'Honorary Member', 'rank' => 6, 'is_officer' => false]] as $payload) {
+        foreach ([['name' => 'Assistant Secretary', 'rank' => 5, 'is_officer' => true], ['name' => 'Honorary Member', 'rank' => 6, 'is_officer' => false]] as $payload) {
             $this->postJson('/api/admin/membership-positions', $payload)->assertCreated();
         }
-        $secretary = MembershipPosition::where('slug', 'secretary')->firstOrFail();
+        $secretary = MembershipPosition::where('slug', 'assistant-secretary')->firstOrFail();
         $honorary = MembershipPosition::where('slug', 'honorary-member')->firstOrFail();
         $service = app(MemberService::class);
         $data = ['first_name' => 'First', 'last_name' => 'Officer', 'membership_position_id' => $secretary->id, 'status' => 'active', 'is_public' => true];
@@ -88,6 +88,6 @@ class MembershipPositionTest extends TestCase
             $service->save(array_replace($data, ['first_name' => $name, 'membership_position_id' => $honorary->id]));
         }
         $this->assertDatabaseCount('members', 4);
-        $this->getJson('/api/public/members')->assertJsonFragment(['name' => 'Secretary'])->assertJsonFragment(['name' => 'Honorary Member']);
+        $this->getJson('/api/public/members')->assertJsonFragment(['name' => 'Assistant Secretary'])->assertJsonFragment(['name' => 'Honorary Member']);
     }
 }

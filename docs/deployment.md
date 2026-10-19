@@ -116,6 +116,21 @@ Laravel needs write permission on `lodge/storage`, `lodge/bootstrap/cache`, and 
 
 After the first successful seed, remove the four `LODGE_ADMIN_*_USERNAME/PASSWORD` lines from production `.env`, then run `php artisan config:cache`. The database keeps both accounts. Keep your local private deployment file securely if you need it; do not share it or include it in an archive.
 
+## Login origins
+
+The live website can be opened with or without `www`. In the existing production `lodge/.env`, configure both trusted origins:
+
+```dotenv
+APP_URL=https://gfmasoniclodge40.org
+FRONTEND_URL=https://gfmasoniclodge40.org
+FRONTEND_ALLOWED_ORIGINS=https://gfmasoniclodge40.org,https://www.gfmasoniclodge40.org
+SANCTUM_STATEFUL_DOMAINS=gfmasoniclodge40.org,www.gfmasoniclodge40.org
+SESSION_DOMAIN=null
+SESSION_SECURE_COOKIE=true
+```
+
+Run `php artisan config:cache` from `lodge` after saving. Hostinger updates preserve the existing `.env`, so pushing a changed example file alone does not apply these production settings. The frontend build must keep `VITE_API_BASE_URL=/` so cookies and CSRF requests use the same hostname as the open website. Login origins include `https://` in CORS settings, but Sanctum domains do not. Keep local development URLs in the local `.env` only.
+
 ## 7. Enable the email cron job
 
 Open **Websites ? Dashboard ? Advanced ? Cron Jobs**. Choose **Custom**, and enter (using your real account path):

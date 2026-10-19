@@ -53,7 +53,7 @@ class LodgeTest extends TestCase
             ->assertExactJson(['user' => $admin->only('id', 'name', 'email', 'username')]);
     }
 
-    private function memberData(int $position = 4): array
+    private function memberData(int $position = 13): array
     {
         return ['first_name' => 'Juan', 'last_name' => 'Example', 'membership_position_id' => MembershipPosition::where('rank', $position)->firstOrFail()->id, 'status' => 'active', 'is_public' => true, 'display_order' => 0];
     }
