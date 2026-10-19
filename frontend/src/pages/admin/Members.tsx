@@ -1,5 +1,6 @@
 import { Link, apiActions } from "../../lib/ui";
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import AdminLayout from "../../layouts/AdminLayout";
 import Pagination from "../../components/admin/Pagination";
 import MembershipPositionForm from "../../components/admin/MembershipPositionForm";
@@ -14,7 +15,16 @@ export default function Members({
   const [search, setSearch] = useState("");
   const [addingPosition, setAddingPosition] = useState(false);
   const [editingPosition, setEditingPosition] = useState<Position>();
-  const [managingPositions, setManagingPositions] = useState(false);
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const managingPositions = params.get("positions") === "1";
+  const movePosition = (index: number, direction: number) => {
+    const ids = positions.map((position) => position.id);
+    const target = index + direction;
+    if (target < 0 || target >= ids.length) return;
+    [ids[index], ids[target]] = [ids[target], ids[index]];
+    void apiActions.post("/admin/membership-positions/reorder", { ids });
+  };
   const move = (index: number, direction: number) => {
     const ids = members.data.map((m) => m.id);
     const target = index + direction;
@@ -38,7 +48,11 @@ export default function Members({
           </button>
           <button
             className="admin-button secondary"
-            onClick={() => setManagingPositions((value) => !value)}
+            onClick={() => {
+              if (managingPositions) params.delete("positions");
+              else params.set("positions", "1");
+              apiActions.get("/admin/members", Object.fromEntries(params));
+            }}
           >
             Manage positions
           </button>
@@ -59,21 +73,46 @@ export default function Members({
       {managingPositions && (
         <div className="admin-panel table-wrap">
           <h2>Membership positions</h2>
+          <p className="help">
+            Use the arrows to move positions up or down. Positions can be
+            deleted only when no members are assigned, including inactive and
+            private members.
+          </p>
           <table>
             <thead>
               <tr>
                 <th>Position</th>
                 <th>Order</th>
                 <th>Type</th>
+                <th>Assigned members</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {positions.map((position) => (
+              {positions.map((position, index) => (
                 <tr key={position.id}>
                   <td>{position.name}</td>
-                  <td>{position.rank}</td>
+                  <td>
+                    <div className="admin-actions">
+                      <span>{position.rank}</span>
+                      <button
+                        aria-label={`Move ${position.name} position up`}
+                        disabled={index === 0}
+                        onClick={() => movePosition(index, -1)}
+                      >
+                        ↑
+                      </button>
+                      <button
+                        aria-label={`Move ${position.name} position down`}
+                        disabled={index === positions.length - 1}
+                        onClick={() => movePosition(index, 1)}
+                      >
+                        ↓
+                      </button>
+                    </div>
+                  </td>
                   <td>{position.is_officer ? "Officer" : "Regular"}</td>
+                  <td>{position.members_count ?? 0}</td>
                   <td>
                     <button
                       onClick={() => {
@@ -82,6 +121,27 @@ export default function Members({
                       }}
                     >
                       Edit position
+                    </button>
+                    <button
+                      className="danger-link"
+                      disabled={(position.members_count ?? 0) > 0}
+                      title={
+                        (position.members_count ?? 0) > 0
+                          ? "Reassign all members before deleting this position."
+                          : "Delete this unused position"
+                      }
+                      onClick={() => {
+                        if (
+                          confirm(
+                            `Permanently delete position "${position.name}"? This cannot be undone.`,
+                          )
+                        )
+                          void apiActions.delete(
+                            `/admin/membership-positions/${position.id}`,
+                          );
+                      }}
+                    >
+                      Delete position
                     </button>
                   </td>
                 </tr>
@@ -94,7 +154,10 @@ export default function Members({
         className="search-bar"
         onSubmit={(e) => {
           e.preventDefault();
-          apiActions.get("/admin/members", { search });
+          apiActions.get("/admin/members", {
+            search,
+            ...(managingPositions ? { positions: "1" } : {}),
+          });
         }}
       >
         <input

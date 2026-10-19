@@ -46,6 +46,49 @@ class MembershipPositionTest extends TestCase
         $this->assertDatabaseCount('membership_positions', 13);
     }
 
+    public function test_delete_and_reorder_require_an_admin(): void
+    {
+        $position = MembershipPosition::firstOrFail();
+        $ids = MembershipPosition::pluck('id')->all();
+        $this->deleteJson('/api/admin/membership-positions/'.$position->id)->assertUnauthorized();
+        $this->postJson('/api/admin/membership-positions/reorder', ['ids' => $ids])->assertUnauthorized();
+        $this->actingAs(User::factory()->create());
+        $this->deleteJson('/api/admin/membership-positions/'.$position->id)->assertForbidden();
+        $this->postJson('/api/admin/membership-positions/reorder', ['ids' => $ids])->assertForbidden();
+    }
+
+    public function test_only_unassigned_positions_can_be_deleted_including_private_and_inactive_members(): void
+    {
+        $this->actingAs($this->admin());
+        $unused = MembershipPosition::where('slug', 'tyler')->firstOrFail();
+        $this->deleteJson('/api/admin/membership-positions/'.$unused->id)->assertOk();
+        $this->assertDatabaseMissing('membership_positions', ['id' => $unused->id]);
+        $position = MembershipPosition::where('slug', 'member')->firstOrFail();
+        foreach (['active', 'inactive', 'past_officer'] as $status) {
+            $member = app(MemberService::class)->save(['first_name' => 'Assigned', 'last_name' => 'Member', 'membership_position_id' => $position->id, 'status' => $status, 'is_public' => false]);
+            $this->deleteJson('/api/admin/membership-positions/'.$position->id)->assertJsonValidationErrors('position');
+            $response = $this->getJson('/api/admin/members')->assertOk();
+            $this->assertSame(1, collect($response->json('positions'))->firstWhere('id', $position->id)['members_count']);
+            $this->assertDatabaseHas('members', ['id' => $member->id, 'membership_position_id' => $position->id]);
+            $member->delete();
+        }
+        $this->deleteJson('/api/admin/membership-positions/'.$position->id)->assertOk();
+    }
+
+    public function test_reordering_saves_all_ranks_and_rejects_stale_or_invalid_lists(): void
+    {
+        $this->actingAs($this->admin());
+        $ids = MembershipPosition::orderBy('rank')->pluck('id')->all();
+        [$ids[0], $ids[3]] = [$ids[3], $ids[0]];
+        $this->postJson('/api/admin/membership-positions/reorder', ['ids' => $ids])->assertOk();
+        $this->assertSame($ids, MembershipPosition::orderBy('rank')->pluck('id')->all());
+        $this->assertSame(range(1, count($ids)), MembershipPosition::orderBy('rank')->pluck('rank')->all());
+        $this->postJson('/api/admin/membership-positions/reorder', ['ids' => array_slice($ids, 1)])->assertJsonValidationErrors('ids');
+        $this->postJson('/api/admin/membership-positions/reorder', ['ids' => [$ids[0], $ids[0]]])->assertUnprocessable();
+        $this->postJson('/api/admin/membership-positions/reorder', ['ids' => [...$ids, 999999]])->assertJsonValidationErrors('ids');
+        $this->assertSame($ids, MembershipPosition::orderBy('rank')->pluck('id')->all());
+    }
+
     public function test_position_edits_preserve_assignments_and_allow_multiple_officers(): void
     {
         $position = MembershipPosition::where('slug', 'member')->firstOrFail();

@@ -4,6 +4,7 @@ export interface Position {
   slug: string;
   rank: number;
   is_officer: boolean;
+  members_count?: number;
 }
 export interface PublicMember {
   id: number;

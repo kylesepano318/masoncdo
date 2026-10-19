@@ -29,6 +29,8 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::post('/celebration-types', [CelebrationTypeController::class, 'store']);
     Route::delete('/celebration-types/{celebrationType}', [CelebrationTypeController::class, 'destroy']);
     Route::post('/membership-positions', [MembershipPositionController::class, 'store']);
+    Route::post('/membership-positions/reorder', [MembershipPositionController::class, 'reorder']);
+    Route::delete('/membership-positions/{membershipPosition}', [MembershipPositionController::class, 'destroy']);
     Route::put('/membership-positions/{membershipPosition}', [MembershipPositionController::class, 'update']);
     Route::get('/me', [ApiAuthController::class, 'me']);
     Route::post('/logout', [ApiAuthController::class, 'logout']);

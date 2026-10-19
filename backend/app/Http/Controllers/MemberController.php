@@ -18,7 +18,7 @@ class MemberController extends Controller
 {
     public function index(Request $r)
     {
-        return response()->json(['members' => Member::with('position')->when($r->query('search'), fn ($q, $s) => $q->where(fn ($q) => $q->where('first_name', 'like', "%$s%")->orWhere('last_name', 'like', "%$s%")))->orderBy('display_order')->paginate(20)->withQueryString(), 'positions' => MembershipPosition::orderBy('rank')->get()]);
+        return response()->json(['members' => Member::with('position')->when($r->query('search'), fn ($q, $s) => $q->where(fn ($q) => $q->where('first_name', 'like', "%$s%")->orWhere('last_name', 'like', "%$s%")))->orderBy('display_order')->paginate(20)->withQueryString(), 'positions' => MembershipPosition::withCount('members')->orderBy('rank')->orderBy('id')->get()]);
     }
 
     public function create()

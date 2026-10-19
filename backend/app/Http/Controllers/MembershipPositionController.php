@@ -13,6 +13,40 @@ use Illuminate\Validation\ValidationException;
 
 class MembershipPositionController extends Controller
 {
+    public function destroy(MembershipPosition $membershipPosition)
+    {
+        DB::transaction(function () use ($membershipPosition) {
+            $position = MembershipPosition::whereKey($membershipPosition->id)->lockForUpdate()->firstOrFail();
+            if ($position->members()->exists()) {
+                throw ValidationException::withMessages(['position' => 'Reassign all members from this position before deleting it, including inactive and private members.']);
+            }
+            $position->delete();
+            Audit::log('Membership Position Deleted', ['position_id' => $position->id]);
+        });
+
+        return response()->json(['message' => 'Membership position deleted.']);
+    }
+
+    public function reorder(Request $request)
+    {
+        $ids = $request->validate(['ids' => 'required|array|min:1', 'ids.*' => 'required|integer|distinct'])['ids'];
+        DB::transaction(function () use ($ids) {
+            $current = MembershipPosition::orderBy('id')->lockForUpdate()->pluck('id')->all();
+            $submitted = array_map('intval', $ids);
+            sort($current);
+            sort($submitted);
+            if ($current !== $submitted) {
+                throw ValidationException::withMessages(['ids' => 'The position list changed. Refresh the page and try again.']);
+            }
+            foreach ($ids as $i => $id) {
+                MembershipPosition::whereKey($id)->update(['rank' => $i + 1]);
+            }
+            Audit::log('Membership Positions Reordered');
+        });
+
+        return response()->json(['message' => 'Position order saved.']);
+    }
+
     public function update(Request $request, MembershipPosition $membershipPosition)
     {
         $data = $request->validate(['name' => 'required|string|max:100', 'rank' => 'required|integer|min:1|max:1000', 'is_officer' => 'required|boolean']);

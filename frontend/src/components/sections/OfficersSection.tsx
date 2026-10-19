@@ -8,44 +8,41 @@ export default function OfficersSection({
   section: Section;
   members: PublicMember[];
 }) {
-  const officers = members.filter((member) => member.position.is_officer);
-  const masters = officers.filter(
-    (m) => m.position.slug === "worshipful-master",
-  );
-  const wardens = officers.filter((m) =>
-    ["senior-warden", "junior-warden"].includes(m.position.slug),
-  );
-  const otherOfficers = officers.filter(
-    (member) =>
-      member.position.is_officer &&
-      !["worshipful-master", "senior-warden", "junior-warden"].includes(
-        member.position.slug,
-      ),
-  );
+  const officers = members
+    .filter((member) => member.position.is_officer)
+    .sort((a, b) => a.position.rank - b.position.rank);
+  const groups: { kind: string; members: PublicMember[] }[] = [];
+  for (const member of officers) {
+    const slug = member.position.slug;
+    const kind =
+      slug === "worshipful-master"
+        ? "master"
+        : ["senior-warden", "junior-warden"].includes(slug)
+          ? "wardens"
+          : "other";
+    const last = groups[groups.length - 1];
+    if (last?.kind === kind) last.members.push(member);
+    else groups.push({ kind, members: [member] });
+  }
   return (
     <section className="section officers-section">
       <Heading section={section} />
-      {masters.length > 0 && (
-        <div className={masters.length === 1 ? "master-row" : "members-grid"}>
-          {masters.map((master) => (
-            <MemberCard key={master.id} member={master} officer />
-          ))}
-        </div>
-      )}
-      {wardens.length > 0 && (
-        <div className="wardens-row">
-          {wardens.map((m) => (
-            <MemberCard key={m.id} member={m} officer />
-          ))}
-        </div>
-      )}
-      {otherOfficers.length > 0 && (
-        <div className="members-grid">
-          {otherOfficers.map((member) => (
+      {groups.map((group) => (
+        <div
+          key={group.members[0].id}
+          className={
+            group.kind === "master" && group.members.length === 1
+              ? "master-row"
+              : group.kind === "wardens"
+                ? "wardens-row"
+                : "members-grid"
+          }
+        >
+          {group.members.map((member) => (
             <MemberCard key={member.id} member={member} officer />
           ))}
         </div>
-      )}
+      ))}
       {!officers.length && (
         <p className="empty-public">
           The current officers will be introduced here soon.

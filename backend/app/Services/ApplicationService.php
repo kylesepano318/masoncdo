@@ -41,7 +41,12 @@ class ApplicationService
             $application = LodgeApplication::whereKey($application->id)->lockForUpdate()->firstOrFail();
             if ($application->converted_at) {
                 throw ValidationException::withMessages(['conversion' => 'This application has already been converted.']);
-            } $member = Member::create(collect($application->toArray())->only(['first_name', 'middle_name', 'last_name', 'suffix'])->all() + ['membership_position_id' => MembershipPosition::where('slug', 'member')->firstOrFail()->id, 'status' => 'active', 'is_public' => false, 'member_since' => today()]);
+            }
+            $position = MembershipPosition::where('slug', 'member')->where('is_officer', false)->lockForUpdate()->first();
+            if (! $position) {
+                throw ValidationException::withMessages(['conversion' => 'Create a regular position named Member before converting applications to members.']);
+            }
+            $member = Member::create(collect($application->toArray())->only(['first_name', 'middle_name', 'last_name', 'suffix'])->all() + ['membership_position_id' => $position->id, 'status' => 'active', 'is_public' => false, 'member_since' => today()]);
             $application->update(['status' => 'approved', 'converted_member_id' => $member->id, 'converted_at' => now(), 'reviewed_at' => now()]);
             Audit::log('Application Converted to Member', ['application_id' => $application->id, 'member_id' => $member->id]);
 
